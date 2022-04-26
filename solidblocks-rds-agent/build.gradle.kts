@@ -4,7 +4,6 @@ plugins {
 
 dependencies {
     implementation(project(":solidblocks-rds-shared"))
-    implementation("com.github.ajalt.clikt:clikt:3.4.1")
 }
 
 application {
