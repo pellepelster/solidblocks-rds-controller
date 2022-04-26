@@ -10,8 +10,8 @@
         <appender-ref ref="CONSOLE"/>
     </root>
 
-    <logger name="com.jcabi.manifests.Manifests" level="WARN">
-        <appender-ref ref="CONSOLE" />
+    <logger name="com.zaxxer.hikari.HikariConfig" level="WARN">
+        <appender-ref ref="CONSOLE"/>
     </logger>
 
 </configuration>

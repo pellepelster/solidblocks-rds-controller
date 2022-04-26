@@ -4,7 +4,7 @@ databaseChangeLog:
       author: pelle
       changes:
         - createTable:
-            tableName: instances
+            tableName: rds_instances
             columns:
               - column:
                   name: id
@@ -21,6 +21,6 @@ databaseChangeLog:
             columns:
               - column:
                   name: name
-            indexName: instances_name
-            tableName: instances
+            indexName: rds_instances_name
+            tableName: rds_instances
             unique: true

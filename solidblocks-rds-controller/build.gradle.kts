@@ -8,5 +8,5 @@ dependencies {
 }
 
 application {
-    mainClass.set("de.solidblocks.rds.controller.ControllerKt")
+    mainClass.set("de.solidblocks.rds.controller.ApplicationCliKt")
 }
