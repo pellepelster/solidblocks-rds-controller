@@ -17,6 +17,43 @@ databaseChangeLog:
                   type: varchar(256)
                   constraints:
                     nullable: false
+              - column:
+                  name: deleted
+                  type: boolean
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: configuration_values
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: version
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: key_
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: value_
+                  type: varchar(4096)
+                  constraints:
+                    nullable: true
+              - column:
+                  name: rds_instance
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_configuration_values_rds_instance
+                    references: rds_instances(id)
+
         - createIndex:
             columns:
               - column:

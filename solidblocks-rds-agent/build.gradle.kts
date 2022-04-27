@@ -10,4 +10,4 @@ application {
     mainClass.set("de.solidblocks.rds.agent.AgentKt")
 }
 
-tasks.getByName("compileKotlin").dependsOn(":solidblocks-rds-docker:docker")
+tasks.getByName("check").dependsOn(":solidblocks-rds-postgresql:docker")
