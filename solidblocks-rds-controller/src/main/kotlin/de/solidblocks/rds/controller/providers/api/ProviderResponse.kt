@@ -1,4 +1,4 @@
-package de.solidblocks.rds.controller.api.provider
+package de.solidblocks.rds.controller.providers.api
 
 import java.util.*
 

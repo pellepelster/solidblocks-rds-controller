@@ -53,6 +53,7 @@ class ApiHttpServer(port: Int = 8080) {
             CorsHandler.create("*")
                 .allowedMethod(io.vertx.core.http.HttpMethod.GET)
                 .allowedMethod(io.vertx.core.http.HttpMethod.POST)
+                .allowedMethod(io.vertx.core.http.HttpMethod.DELETE)
                 .allowedMethod(io.vertx.core.http.HttpMethod.OPTIONS)
                 .allowedHeader("Authorization")
                 .allowedHeader("Access-Control-Request-Method")

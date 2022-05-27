@@ -1,11 +1,20 @@
-package de.solidblocks.rds.controller.api.provider
+package de.solidblocks.rds.controller.providers
 
 import de.solidblocks.rds.controller.ErrorCodes
 import de.solidblocks.rds.controller.api.CreationResult
 import de.solidblocks.rds.controller.api.ValidationResult
 import de.solidblocks.rds.controller.model.ProvidersRepository
+import de.solidblocks.rds.controller.providers.api.ProviderCreateRequest
+import de.solidblocks.rds.controller.providers.api.ProviderResponse
+import java.util.UUID
 
-class ProviderManager(private val providersRepository: ProvidersRepository) {
+class ProvidersManager(private val providersRepository: ProvidersRepository) {
+
+    fun get(id: UUID) = providersRepository.read(id)?.let {
+        ProviderResponse(it.id, it.name)
+    }
+
+    fun delete(id: UUID) = providersRepository.delete(id)
 
     fun list() = providersRepository.list().map {
         ProviderResponse(it.id, it.name)

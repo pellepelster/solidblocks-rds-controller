@@ -13,7 +13,7 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
 
     fun create(
         name: String, configValues: List<Pair<String, String>> = emptyList()
-    ): RdsInstanceEntity? {
+    ): ProviderEntity? {
         val id = UUID.randomUUID()
 
         dsl.insertInto(PROVIDERS).columns(
@@ -28,7 +28,7 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
     }
 
 
-    fun list(filter: Condition? = null): List<RdsInstanceEntity> {
+    fun list(filter: Condition? = null): List<ProviderEntity> {
 
         var filterConditions = providers.DELETED.isFalse
 
@@ -41,7 +41,7 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
         return dsl.selectFrom(
             providers.leftJoin(latest).on(providers.ID.eq(latest.field(CONFIGURATION_VALUES.PROVIDER)))
         ).where(filterConditions).fetchGroups({ it.into(providers) }, { it.into(latest) }).map {
-            RdsInstanceEntity(
+            ProviderEntity(
                 id = it.key.id!!,
                 name = it.key.name!!,
                 configValues = it.value.map {
@@ -65,11 +65,15 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
         }.all { it }
     }
 
-    fun read(id: UUID): RdsInstanceEntity? {
+    fun delete(id: UUID): Boolean {
+        return dsl.delete(PROVIDERS).where(PROVIDERS.ID.eq(id)).execute() == 1
+    }
+
+    fun read(id: UUID): ProviderEntity? {
         return list(providers.ID.eq(id)).firstOrNull()
     }
 
-    fun read(name: String): RdsInstanceEntity? {
+    fun read(name: String): ProviderEntity? {
         return list(providers.NAME.eq(name)).firstOrNull()
     }
 

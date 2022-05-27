@@ -17,6 +17,17 @@ class ProvidersRepositoryTest {
     }
 
     @Test
+    fun testDelete(database: ManagementDatabase) {
+        val repository = ProvidersRepository(database.dsl)
+
+        val provider = repository.create("provider-delete")
+        assertThat(repository.exists("provider-delete")).isTrue
+
+        repository.delete(provider!!.id)
+        assertThat(repository.exists("provider-delete")).isFalse
+    }
+
+    @Test
     fun testUpdate(database: ManagementDatabase) {
         val repository = ProvidersRepository(database.dsl)
 

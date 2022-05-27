@@ -1,16 +1,19 @@
-package de.solidblocks.rds.controller.api.provider
+package de.solidblocks.rds.controller.providers.api
 
 import de.solidblocks.rds.controller.api.ApiHttpServer
 import de.solidblocks.rds.controller.api.GenericApiResponse
 import de.solidblocks.rds.controller.api.jsonRequest
 import de.solidblocks.rds.controller.api.jsonResponse
+import de.solidblocks.rds.controller.providers.ProvidersManager
 import io.vertx.ext.web.RoutingContext
+import java.util.*
 
-class ProvidersApi(apiHttpServer: ApiHttpServer, val providerManager: ProviderManager) {
+class ProvidersApi(apiHttpServer: ApiHttpServer, val providersManager: ProvidersManager) {
 
     init {
         apiHttpServer.configureSubRouter("/api/v1/providers", configure = { router ->
             router.get("/:id").handler(this::get)
+            router.delete("/:id").handler(this::delete)
             router.post().handler(this::create)
             router.get().handler(this::list)
         })
@@ -19,14 +22,14 @@ class ProvidersApi(apiHttpServer: ApiHttpServer, val providerManager: ProviderMa
     fun create(rc: RoutingContext) {
         val request = rc.jsonRequest(ProviderCreateRequest::class.java)
 
-        val validateResult = providerManager.validate(request)
+        val validateResult = providersManager.validate(request)
 
         if (validateResult.hasErrors()) {
             rc.jsonResponse(ProviderCreateResponse(messages = validateResult.messages), 422)
             return
         }
 
-        val result = providerManager.create(request)
+        val result = providersManager.create(request)
 
         if (result.data == null) {
             rc.jsonResponse(GenericApiResponse(), 500)
@@ -41,31 +44,41 @@ class ProvidersApi(apiHttpServer: ApiHttpServer, val providerManager: ProviderMa
     fun list(rc: RoutingContext) {
         rc.jsonResponse(
             ProvidersResponseWrapper(
-                providerManager.list()
+                providersManager.list()
             )
         )
     }
 
-    fun get(rc: RoutingContext) {
-
-        /*
+    fun delete(rc: RoutingContext) {
         val id = try {
             UUID.fromString(rc.pathParam("id"))
         } catch (e: IllegalArgumentException) {
-            rc.jsonResponse(CloudResponseWrapper(), 400)
+            rc.jsonResponse(ProviderResponseWrapper(), 400)
             return
         }
 
-        val cloud = cloudsManager.getCloud(rc.email(), id)
+        if (providersManager.delete(id)) {
+            rc.jsonResponse(ProviderResponseWrapper(), 204)
+        } else {
+            rc.jsonResponse(ProviderResponseWrapper(), 404)
+        }
+    }
 
-        if (cloud == null) {
-            rc.jsonResponse(CloudResponseWrapper(), 404)
+    fun get(rc: RoutingContext) {
+        val id = try {
+            UUID.fromString(rc.pathParam("id"))
+        } catch (e: IllegalArgumentException) {
+            rc.jsonResponse(ProviderResponseWrapper(), 400)
             return
         }
 
-        val environments = cloudsManager.cloudEnvironments(rc.email(), id)
-        rc.jsonResponse(CloudResponseWrapper(cloud.toResponse(environments.map { it.toResponse() })))
+        val provider = providersManager.get(id)
 
-         */
+        if (provider == null) {
+            rc.jsonResponse(ProviderResponseWrapper(), 404)
+            return
+        }
+
+        rc.jsonResponse(ProviderResponseWrapper(provider = provider))
     }
 }
