@@ -1,45 +1,46 @@
 package de.solidblocks.rds.controller.model
 
 import de.solidblocks.rds.controller.model.tables.references.CONFIGURATION_VALUES
-import de.solidblocks.rds.controller.model.tables.references.RDS_INSTANCES
+import de.solidblocks.rds.controller.model.tables.references.PROVIDERS
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record5
 import java.util.*
 
-class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
+class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
 
-    val rdsInstances = RDS_INSTANCES.`as`("rds_instances")
+    val providers = PROVIDERS.`as`("providers")
 
     fun create(
         name: String, configValues: List<Pair<String, String>> = emptyList()
     ): RdsInstanceEntity? {
         val id = UUID.randomUUID()
 
-        dsl.insertInto(RDS_INSTANCES).columns(
-            RDS_INSTANCES.ID, RDS_INSTANCES.NAME, RDS_INSTANCES.DELETED
+        dsl.insertInto(PROVIDERS).columns(
+            PROVIDERS.ID, PROVIDERS.NAME, PROVIDERS.DELETED
         ).values(id, name, false).execute()
 
         configValues.forEach {
-            setConfiguration(RdsInstanceId(id), it.first, it.second)
+            setConfiguration(ProviderId(id), it.first, it.second)
         }
 
-        return read(id)
+        return read(id)!!
     }
 
 
     fun list(filter: Condition? = null): List<RdsInstanceEntity> {
 
-        var filterConditions = rdsInstances.DELETED.isFalse
+        var filterConditions = providers.DELETED.isFalse
+
         if (filter != null) {
             filterConditions = filterConditions.and(filter)
         }
 
-        val latest = latestConfigurationValuesQuery(CONFIGURATION_VALUES.RDS_INSTANCE)
+        val latest = latestConfigurationValuesQuery(CONFIGURATION_VALUES.PROVIDER)
 
         return dsl.selectFrom(
-            rdsInstances.leftJoin(latest).on(rdsInstances.ID.eq(latest.field(CONFIGURATION_VALUES.RDS_INSTANCE)))
-        ).where(filterConditions).fetchGroups({ it.into(rdsInstances) }, { it.into(latest) }).map {
+            providers.leftJoin(latest).on(providers.ID.eq(latest.field(CONFIGURATION_VALUES.PROVIDER)))
+        ).where(filterConditions).fetchGroups({ it.into(providers) }, { it.into(latest) }).map {
             RdsInstanceEntity(
                 id = it.key.id!!,
                 name = it.key.name!!,
@@ -65,22 +66,26 @@ class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
     }
 
     fun read(id: UUID): RdsInstanceEntity? {
-        return list(rdsInstances.ID.eq(id)).firstOrNull()
+        return list(providers.ID.eq(id)).firstOrNull()
     }
 
     fun read(name: String): RdsInstanceEntity? {
-        return list(rdsInstances.NAME.eq(name)).firstOrNull()
+        return list(providers.NAME.eq(name)).firstOrNull()
+    }
+
+    fun exists(name: String): Boolean {
+        return dsl.selectFrom(PROVIDERS).where(PROVIDERS.NAME.eq(name)).count() == 1
     }
 
     fun update(
         name: String, key: String, value: String?
     ): Boolean {
         val instance = read(name) ?: return false
-        return setConfiguration(RdsInstanceId(instance.id), key, value)
+        return setConfiguration(ProviderId(instance.id), key, value)
     }
 
     private fun update(
         id: UUID, key: String, value: String
-    ) = setConfiguration(RdsInstanceId(id), key, value)
+    ) = setConfiguration(ProviderId(id), key, value)
 
 }

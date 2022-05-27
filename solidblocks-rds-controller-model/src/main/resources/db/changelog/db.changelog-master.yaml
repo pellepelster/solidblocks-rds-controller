@@ -22,6 +22,43 @@ databaseChangeLog:
                   type: boolean
                   constraints:
                     nullable: false
+
+        - createIndex:
+            columns:
+              - column:
+                  name: name
+            indexName: rds_instances_name
+            tableName: rds_instances
+            unique: true
+
+        - createTable:
+            tableName: providers
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted
+                  type: boolean
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            columns:
+              - column:
+                  name: name
+            indexName: providers_name
+            tableName: providers
+            unique: true
+
         - createTable:
             tableName: configuration_values
             columns:
@@ -50,14 +87,13 @@ databaseChangeLog:
                   name: rds_instance
                   type: uuid
                   constraints:
-                    nullable: false
+                    nullable: true
                     foreignKeyName: fk_configuration_values_rds_instance
                     references: rds_instances(id)
-
-        - createIndex:
-            columns:
               - column:
-                  name: name
-            indexName: rds_instances_name
-            tableName: rds_instances
-            unique: true
+                  name: provider
+                  type: uuid
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_configuration_values_provider
+                    references: providers(id)
