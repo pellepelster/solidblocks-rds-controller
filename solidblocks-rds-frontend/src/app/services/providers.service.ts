@@ -12,9 +12,10 @@ export class ProvidersService {
   constructor(private http: HttpClient) {
   }
 
-  public create(name: String) {
+  public create(name: String, apiKey: String) {
     return this.http.post<CreateProviderResponse>(`${environment.apiAddress}/v1/providers`, {
-      name
+      name,
+      apiKey
     });
   }
 

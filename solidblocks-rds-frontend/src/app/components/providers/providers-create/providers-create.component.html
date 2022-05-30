@@ -4,15 +4,15 @@
       <div class="card" style="border-radius: 1rem;">
         <div class="card-body p-5">
 
-          <h2 class="fw-bold mb-2 text-uppercase">Create</h2>
+          <h2 class="mb-2">Create Provider</h2>
 
-          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <ng-template providerWizardSteps></ng-template>
 
-            <input-control [form]="form" [messages]="messages" formControlName="name"></input-control>
+          <button type="button" class="btn btn-primary" [disabled]="!hasPreviousStep()" (click)="previousStep()">Back</button>
 
-            <button class="btn btn-outline-info btn-lg px-5" [disabled]="!form.valid" type="submit">Create</button>
+          <button type="button" class="btn btn-primary" *ngIf="hasNextStep()" [disabled]="!currentStepValid()" (click)="nextStep()">Next</button>
+          <button type="button" class="btn btn-primary" *ngIf="!hasNextStep()" [disabled]="!currentStepValid()" (click)="finish()">Finish</button>
 
-          </form>
         </div>
       </div>
     </div>

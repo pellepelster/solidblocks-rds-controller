@@ -3,7 +3,11 @@ import {CommonModule} from "@angular/common";
 import {ControlsModule} from "../controls/controls-module";
 import {ReactiveFormsModule} from "@angular/forms";
 import {ProvidersHomeComponent} from "./providers-home/providers-home.component";
-import {ProvidersCreateComponent} from "./providers-create/providers-create.component";
+import {
+  ProvidersWizardStep1Component,
+  ProviderWizardStepsDirective,
+  ProvidersCreateComponent, ProvidersWizardStep2Component
+} from "./providers-create/providers-create.component";
 import {ProvidersListItemComponent} from "./providers-list-item.component";
 import {ProvidersRoutingModule} from "./providers-routing-module";
 import {ProvidersComponent} from "./providers.component";
@@ -14,6 +18,9 @@ import {ProvidersDetailsComponent} from "./providers-details/providers-details.c
     ProvidersHomeComponent,
     ProvidersDetailsComponent,
     ProvidersCreateComponent,
+    ProviderWizardStepsDirective,
+    ProvidersWizardStep1Component,
+    ProvidersWizardStep2Component,
     ProvidersListItemComponent,
     ProvidersComponent
   ],

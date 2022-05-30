@@ -12,7 +12,7 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
     val providers = PROVIDERS.`as`("providers")
 
     fun create(
-        name: String, configValues: List<Pair<String, String>> = emptyList()
+        name: String, configValues: Map<String, String> = emptyMap()
     ): ProviderEntity? {
         val id = UUID.randomUUID()
 
@@ -21,7 +21,7 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
         ).values(id, name, false).execute()
 
         configValues.forEach {
-            setConfiguration(ProviderId(id), it.first, it.second)
+            setConfiguration(ProviderId(id), it.key, it.value)
         }
 
         return read(id)!!
