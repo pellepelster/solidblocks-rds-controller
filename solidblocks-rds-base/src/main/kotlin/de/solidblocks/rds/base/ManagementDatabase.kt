@@ -1,4 +1,4 @@
-package de.solidblocks.rds.controller.model
+package de.solidblocks.rds.base
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource

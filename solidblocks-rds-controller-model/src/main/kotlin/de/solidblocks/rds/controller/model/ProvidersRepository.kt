@@ -66,6 +66,7 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
     }
 
     fun delete(id: UUID): Boolean {
+        dsl.delete(CONFIGURATION_VALUES).where(CONFIGURATION_VALUES.PROVIDER.eq(id)).execute()
         return dsl.delete(PROVIDERS).where(PROVIDERS.ID.eq(id)).execute() == 1
     }
 

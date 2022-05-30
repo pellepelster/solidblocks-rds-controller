@@ -1,5 +1,6 @@
-package de.solidblocks.rds.controller.model
+package de.solidblocks.rds.test
 
+import de.solidblocks.rds.base.ManagementDatabase
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext

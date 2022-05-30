@@ -3,6 +3,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":solidblocks-rds-base"))
     implementation(project(":solidblocks-rds-shared"))
     implementation(project(":solidblocks-rds-controller-model"))
 
@@ -13,6 +14,12 @@ dependencies {
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")
 
     implementation("me.tomsdevsn:hetznercloud-api:2.13.0")
+
+    implementation("org.bouncycastle:bcprov-jdk15to18:1.68")
+    implementation("net.i2p.crypto:eddsa:0.3.0")
+
+    testImplementation(project(":solidblocks-rds-test"))
+
 }
 
 application {

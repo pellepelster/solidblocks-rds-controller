@@ -1,10 +1,10 @@
 package de.solidblocks.rds.controller
 
 import com.github.ajalt.clikt.core.CliktCommand
+import de.solidblocks.rds.base.ManagementDatabase
 import de.solidblocks.rds.controller.api.ApiHttpServer
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import de.solidblocks.rds.controller.providers.api.ProvidersApi
-import de.solidblocks.rds.controller.model.ManagementDatabase
 import de.solidblocks.rds.controller.model.ProvidersRepository
 import mu.KotlinLogging
 
@@ -28,7 +28,10 @@ class ControllerCommand : CliktCommand() {
         logger.info { "controller started" }
 
         val httpServer = ApiHttpServer(port = 8080)
-        val providersApi = ProvidersApi(httpServer, ProvidersManager(ProvidersRepository(db.dsl)))
+        val providersManager = ProvidersManager(ProvidersRepository(db.dsl))
+        val providersApi = ProvidersApi(httpServer, providersManager)
+
+        providersManager.apply()
 
     }
 

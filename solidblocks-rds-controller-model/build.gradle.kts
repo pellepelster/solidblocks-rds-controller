@@ -5,16 +5,13 @@ plugins {
 
 dependencies {
 
+    implementation(project(":solidblocks-rds-base"))
+
     implementation("org.apache.derby:derbytools:10.15.2.0")
     implementation("org.apache.derby:derby:10.15.2.0")
 
-    implementation("org.liquibase:liquibase-core:4.6.2")
-    implementation("com.zaxxer:HikariCP:3.4.5")
     implementation("org.yaml:snakeyaml:1.30")
 
-    api("org.jooq:jooq:3.16.6")
-
-    runtimeOnly("com.mattbertolini:liquibase-slf4j:4.0.0")
 
     jooqGenerator("org.jooq:jooq-meta-extensions-liquibase")
     jooqGenerator("org.liquibase:liquibase-core")
@@ -22,6 +19,7 @@ dependencies {
     jooqGenerator("org.slf4j:slf4j-jdk14:1.7.30")
     jooqGenerator(files("src/main/resources"))
 
+    testImplementation(project(":solidblocks-rds-test"))
     testImplementation("org.hamcrest:hamcrest:2.2")
 }
 

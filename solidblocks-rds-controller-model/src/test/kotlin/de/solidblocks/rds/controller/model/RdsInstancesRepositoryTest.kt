@@ -1,5 +1,7 @@
 package de.solidblocks.rds.controller.model
 
+import de.solidblocks.rds.base.ManagementDatabase
+import de.solidblocks.rds.test.ManagementTestDatabaseExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
