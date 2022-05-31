@@ -10,6 +10,9 @@ dependencies {
     implementation("io.vertx:vertx-web:4.2.3")
     implementation("io.vertx:vertx-lang-kotlin:4.2.3")
 
+    api("net.javacrumbs.shedlock:shedlock-provider-jdbc:4.32.0")
+    api("com.github.kagkarlsson:db-scheduler:10.5")
+
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0")
 

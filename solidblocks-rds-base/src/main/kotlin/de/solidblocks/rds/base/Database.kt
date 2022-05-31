@@ -15,7 +15,7 @@ import org.jooq.impl.DefaultDSLContext
 import java.io.InputStream
 import javax.sql.DataSource
 
-class ManagementDatabase(jdbcUrl: String) {
+class Database(jdbcUrl: String) {
 
     private val logger = KotlinLogging.logger {}
 

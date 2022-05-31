@@ -21,6 +21,17 @@ class ProvidersManager(private val providersRepository: ProvidersRepository) {
 
     fun apply() {
 
+        val providers = providersRepository.list()
+
+        if (providers.isEmpty()) {
+
+            logger.info {
+                "no providers found, skipping apply"
+            }
+
+            return
+        }
+
         for (provider in providersRepository.list()) {
             logger.info {
                 "applying config for provider '${provider.name}'"

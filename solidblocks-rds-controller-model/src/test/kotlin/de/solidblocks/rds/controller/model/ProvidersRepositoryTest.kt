@@ -1,6 +1,6 @@
 package de.solidblocks.rds.controller.model
 
-import de.solidblocks.rds.base.ManagementDatabase
+import de.solidblocks.rds.base.Database
 import de.solidblocks.rds.test.ManagementTestDatabaseExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 class ProvidersRepositoryTest {
 
     @Test
-    fun testExists(database: ManagementDatabase) {
+    fun testExists(database: Database) {
         val repository = ProvidersRepository(database.dsl)
 
         assertThat(repository.exists("provider-exists")).isFalse
@@ -19,7 +19,7 @@ class ProvidersRepositoryTest {
     }
 
     @Test
-    fun testDelete(database: ManagementDatabase) {
+    fun testDelete(database: Database) {
         val repository = ProvidersRepository(database.dsl)
 
         val provider = repository.create("provider-delete")
@@ -30,7 +30,7 @@ class ProvidersRepositoryTest {
     }
 
     @Test
-    fun testUpdate(database: ManagementDatabase) {
+    fun testUpdate(database: Database) {
         val repository = ProvidersRepository(database.dsl)
 
         repository.create("provider-update-config-value")
@@ -59,7 +59,7 @@ class ProvidersRepositoryTest {
     }
 
     @Test
-    fun testCreate(database: ManagementDatabase) {
+    fun testCreate(database: Database) {
         val repository = RdsInstancesRepository(database.dsl)
 
         assertThat(repository.read("instance1")).isNull()
@@ -73,7 +73,7 @@ class ProvidersRepositoryTest {
     }
 
     @Test
-    fun testCreateWithoutConfigValues(database: ManagementDatabase) {
+    fun testCreateWithoutConfigValues(database: Database) {
         val repository = RdsInstancesRepository(database.dsl)
 
         repository.create("provider-without-config-values")

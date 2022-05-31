@@ -1,6 +1,6 @@
 package de.solidblocks.rds.test
 
-import de.solidblocks.rds.base.ManagementDatabase
+import de.solidblocks.rds.base.Database
 import org.junit.jupiter.api.extension.BeforeAllCallback
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.jupiter.api.extension.ParameterContext
@@ -11,7 +11,7 @@ class ManagementTestDatabaseExtension : ParameterResolver, BeforeAllCallback {
 
     private val TEST_DB_JDBC_URL get() = "jdbc:derby:memory:${UUID.randomUUID()};create=true"
 
-    private val database: ManagementDatabase = ManagementDatabase(TEST_DB_JDBC_URL)
+    private val database: Database = Database(TEST_DB_JDBC_URL)
 
     override fun beforeAll(context: ExtensionContext) {
         database.ensureDBSchema()
@@ -19,7 +19,7 @@ class ManagementTestDatabaseExtension : ParameterResolver, BeforeAllCallback {
 
     override fun supportsParameter(parameterContext: ParameterContext, extensionContext: ExtensionContext): Boolean {
         return parameterContext.parameter.type
-            .equals(ManagementDatabase::class.java)
+            .equals(Database::class.java)
     }
 
     override fun resolveParameter(

@@ -1,6 +1,6 @@
 package de.solidblocks.rds.controller.model
 
-import de.solidblocks.rds.base.ManagementDatabase
+import de.solidblocks.rds.base.Database
 import de.solidblocks.rds.test.ManagementTestDatabaseExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 class RdsInstancesRepositoryTest {
 
     @Test
-    fun testUpdate(database: ManagementDatabase) {
+    fun testUpdate(database: Database) {
         val repository = RdsInstancesRepository(database.dsl)
 
         repository.create("instance-update-config-value")
@@ -39,7 +39,7 @@ class RdsInstancesRepositoryTest {
     }
 
     @Test
-    fun testCreate(database: ManagementDatabase) {
+    fun testCreate(database: Database) {
         val repository = RdsInstancesRepository(database.dsl)
 
         assertThat(repository.read("instance1")).isNull()
@@ -53,7 +53,7 @@ class RdsInstancesRepositoryTest {
     }
 
     @Test
-    fun testCreateWithoutConfigValues(database: ManagementDatabase) {
+    fun testCreateWithoutConfigValues(database: Database) {
         val repository = RdsInstancesRepository(database.dsl)
 
         repository.create("instance-without-config-values")

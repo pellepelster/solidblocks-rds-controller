@@ -1,13 +1,11 @@
 package de.solidblocks.rds.controller
 
-import de.solidblocks.rds.base.ManagementDatabase
+import de.solidblocks.rds.base.Database
 import de.solidblocks.rds.controller.model.ProvidersRepository
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import de.solidblocks.rds.controller.providers.api.ProviderCreateRequest
 import de.solidblocks.rds.test.ManagementTestDatabaseExtension
 import org.assertj.core.api.Assertions.assertThat
-import org.hamcrest.MatcherAssert
-import org.hamcrest.Matchers
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
@@ -15,7 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith
 class ProvidersManagerTest {
 
     @Test
-    fun testCreate(database: ManagementDatabase) {
+    fun testCreate(database: Database) {
         val repository = ProvidersRepository(database.dsl)
 
         val manager = ProvidersManager(repository)
