@@ -12,5 +12,4 @@ object Constants {
     const val SSH_PRIVATE_KEY = "ssh_private_key"
 
     const val API_KEY = "apiKey"
-
 }

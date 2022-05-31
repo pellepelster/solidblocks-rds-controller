@@ -8,7 +8,7 @@ import de.solidblocks.rds.controller.providers.ProvidersManager
 import io.vertx.ext.web.RoutingContext
 import java.util.*
 
-class ProvidersApi(apiHttpServer: ApiHttpServer, val providersManager: ProvidersManager) {
+class ProvidersApi(apiHttpServer: ApiHttpServer, val manager: ProvidersManager) {
 
     init {
         apiHttpServer.configureSubRouter("/api/v1/providers", configure = { router ->
@@ -22,29 +22,28 @@ class ProvidersApi(apiHttpServer: ApiHttpServer, val providersManager: Providers
     fun create(rc: RoutingContext) {
         val request = rc.jsonRequest(ProviderCreateRequest::class.java)
 
-        val validateResult = providersManager.validate(request)
+        val validateResult = manager.validate(request)
 
         if (validateResult.hasErrors()) {
-            rc.jsonResponse(ProviderCreateResponse(messages = validateResult.messages), 422)
+            rc.jsonResponse(ProviderResponseWrapper(messages = validateResult.messages), 422)
             return
         }
 
-        val result = providersManager.create(request)
+        val result = manager.create(request)
 
         if (result.data == null) {
             rc.jsonResponse(GenericApiResponse(), 500)
         }
 
         rc.jsonResponse(
-            ProviderCreateResponse(provider = result.data), 201
+            ProviderResponseWrapper(provider = result.data), 201
         )
     }
-
 
     fun list(rc: RoutingContext) {
         rc.jsonResponse(
             ProvidersResponseWrapper(
-                providersManager.list()
+                manager.list()
             )
         )
     }
@@ -57,7 +56,7 @@ class ProvidersApi(apiHttpServer: ApiHttpServer, val providersManager: Providers
             return
         }
 
-        if (providersManager.delete(id)) {
+        if (manager.delete(id)) {
             rc.jsonResponse(ProviderResponseWrapper(), 204)
         } else {
             rc.jsonResponse(ProviderResponseWrapper(), 404)
@@ -72,7 +71,7 @@ class ProvidersApi(apiHttpServer: ApiHttpServer, val providersManager: Providers
             return
         }
 
-        val provider = providersManager.get(id)
+        val provider = manager.get(id)
 
         if (provider == null) {
             rc.jsonResponse(ProviderResponseWrapper(), 404)

@@ -9,5 +9,4 @@ dependencies {
     implementation(project(":solidblocks-rds-base"))
 
     implementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
-
 }

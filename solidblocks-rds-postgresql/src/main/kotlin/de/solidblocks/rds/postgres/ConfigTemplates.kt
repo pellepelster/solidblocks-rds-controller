@@ -4,15 +4,11 @@ import freemarker.template.Configuration
 import freemarker.template.TemplateExceptionHandler
 import freemarker.template.Version
 import mu.KotlinLogging
-import java.io.File
 import java.io.FileWriter
-import java.io.OutputStreamWriter
-import java.io.Writer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermissions
 import java.util.*
-
 
 class ConfigTemplates {
 
@@ -30,33 +26,37 @@ class ConfigTemplates {
 
         val template = cfg.getTemplate(templateFile)
 
-        //val consoleWriter: Writer = OutputStreamWriter(System.out)
-        //template.process(variables, consoleWriter)
+        // val consoleWriter: Writer = OutputStreamWriter(System.out)
+        // template.process(variables, consoleWriter)
 
-        logger.info { "writing '${templateFile}' to '$output" }
+        logger.info { "writing '$templateFile' to '$output" }
 
         FileWriter(output.toFile()).use { fileWriter ->
             template.process(variables, fileWriter)
         }
 
-        //TODO: do not set world readable when not run in test
+        // TODO: do not set world readable when not run in test
         Files.setPosixFilePermissions(output, PosixFilePermissions.fromString("r--r--r--"))
-
     }
 
     fun pgbackrestConf(configTemplatesDir: Path, database: String, dataDir: Path, backupDir: Path) {
-        writeTemplate("config/templates/pgbackrest.conf.ftl", configTemplatesDir.resolve("pgbackrest.conf"),
-                mapOf("DB_DATABASE" to database, "DATA_DIR" to dataDir.toString(), "BACKUP_DIR" to backupDir.toString()))
+        writeTemplate(
+            "config/templates/pgbackrest.conf.ftl", configTemplatesDir.resolve("pgbackrest.conf"),
+            mapOf("DB_DATABASE" to database, "DATA_DIR" to dataDir.toString(), "BACKUP_DIR" to backupDir.toString())
+        )
     }
 
     fun pgHbaConf(configTemplatesDir: Path, username: String) {
-        writeTemplate("config/templates/pg_hba.conf.ftl", configTemplatesDir.resolve("pg_hba.conf"),
-                mapOf("USERNAME" to username))
+        writeTemplate(
+            "config/templates/pg_hba.conf.ftl", configTemplatesDir.resolve("pg_hba.conf"),
+            mapOf("USERNAME" to username)
+        )
     }
 
     fun postgresqlConf(configTemplatesDir: Path) {
-        writeTemplate("config/templates/postgresql.conf.ftl", configTemplatesDir.resolve("postgresql.conf"),
-                mapOf())
+        writeTemplate(
+            "config/templates/postgresql.conf.ftl", configTemplatesDir.resolve("postgresql.conf"),
+            mapOf()
+        )
     }
-
 }

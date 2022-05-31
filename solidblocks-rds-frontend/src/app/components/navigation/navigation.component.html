@@ -1,5 +1,11 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="#">Home</a>
-  </div>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Providers</a></li>
+
+        <li class="breadcrumb-item" *ngIf="(currentProvider | async)"><a href="#">{{(currentProvider | async)?.name}}</a></li>
+        <li class="breadcrumb-item" *ngIf="(currentRdsInstance | async)"><a href="#">{{(currentRdsInstance | async)?.name}}</a></li>
+      </ol>
+
+    </nav>
 </nav>

@@ -3,17 +3,53 @@ package de.solidblocks.rds.controller.model
 import de.solidblocks.rds.base.Database
 import de.solidblocks.rds.test.ManagementTestDatabaseExtension
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
+import java.util.UUID
 
 @ExtendWith(ManagementTestDatabaseExtension::class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class RdsInstancesRepositoryTest {
+
+    lateinit var providerId: UUID
+
+    @BeforeAll
+    fun beforeAll(database: Database) {
+        val repository = ProvidersRepository(database.dsl)
+        val provider = repository.create("provider-${UUID.randomUUID()}")
+        providerId = provider!!.id
+    }
+
+    @Test
+    fun testDelete(database: Database) {
+        val repository = RdsInstancesRepository(database.dsl)
+
+        val provider = repository.create(providerId, "rds-instances-delete")
+        assertThat(repository.exists("rds-instances-delete")).isTrue
+
+        repository.delete(provider!!.id)
+        assertThat(repository.exists("rds-instances-delete")).isFalse
+    }
+
+    @Test
+    fun testDeleteWithConfigValues(database: Database) {
+        val repository = RdsInstancesRepository(database.dsl)
+
+        val provider =
+            repository.create(providerId, "rds-instances-delete-with-config-values", mapOf("key1" to "label1"))
+        assertThat(repository.exists("rds-instances-delete-with-config-values")).isTrue
+
+        repository.delete(provider!!.id)
+        assertThat(repository.exists("rds-instances-delete-with-config-values")).isFalse
+    }
 
     @Test
     fun testUpdate(database: Database) {
         val repository = RdsInstancesRepository(database.dsl)
 
-        repository.create("instance-update-config-value")
+        repository.create(providerId, "instance-update-config-value")
 
         assertThat(repository.update("non-existing-instance", "key1", "value1")).isFalse
         assertThat(repository.update("instance-update-config-value", "key1", "value1")).isTrue
@@ -35,7 +71,6 @@ class RdsInstancesRepositoryTest {
         assertThat(repository.update("instance-update-config-value", "key1", null)).isTrue
         val updatedInstanceWithNullValue = repository.read("instance-update-config-value")!!
         assertThat(updatedInstanceWithNullValue.configValues[0].value).isNull()
-
     }
 
     @Test
@@ -43,7 +78,7 @@ class RdsInstancesRepositoryTest {
         val repository = RdsInstancesRepository(database.dsl)
 
         assertThat(repository.read("instance1")).isNull()
-        repository.create("instance1", listOf("abc" to "def"))
+        repository.create(providerId, "instance1", mapOf("abc" to "def"))
 
         val instance1 = repository.read("instance1")!!
         assertThat(instance1).isNotNull
@@ -56,12 +91,11 @@ class RdsInstancesRepositoryTest {
     fun testCreateWithoutConfigValues(database: Database) {
         val repository = RdsInstancesRepository(database.dsl)
 
-        repository.create("instance-without-config-values")
+        repository.create(providerId, "instance-without-config-values")
 
         val instance = repository.read("instance-without-config-values")!!
 
         assertThat(instance).isNotNull
         assertThat(instance.configValues).hasSize(0)
     }
-
 }

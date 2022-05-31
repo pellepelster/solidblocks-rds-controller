@@ -1,3 +1,8 @@
 <h2>Provider {{provider?.name}}</h2>
 
+<app-rds-instances-list-item [rdsInstance]="rdsInstance" *ngFor="let rdsInstance of rdsInstances"></app-rds-instances-list-item>
+
+
 <a class="btn btn-danger" (click)="delete(provider.id)">Delete provider {{provider?.name}}</a>
+
+<a [routerLink]="['rds-instances', 'create']" routerLinkActive="active" class="btn btn-primary">Create RDS Instance</a>

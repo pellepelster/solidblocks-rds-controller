@@ -2,7 +2,6 @@ package de.solidblocks.rds.controller
 
 import com.github.ajalt.clikt.core.CliktCommand
 import de.solidblocks.rds.base.Database
-import de.solidblocks.rds.controller.api.ApiHttpServer
 import mu.KotlinLogging
 
 class ControllerCommand : CliktCommand() {
@@ -25,8 +24,5 @@ class ControllerCommand : CliktCommand() {
         logger.info { "controller started" }
 
         val controllerManager = ControllerManager(database)
-
     }
-
 }
-

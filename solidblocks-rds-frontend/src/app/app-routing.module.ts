@@ -8,10 +8,6 @@ const routes: Routes = [
     component: ProvidersHomeComponent
   },
   {
-    path: 'services',
-    loadChildren: () => import('./components/services/services-module').then(m => m.ServicesModule)
-  },
-  {
     path: 'providers',
     loadChildren: () => import('./components/providers/providers-module').then(m => m.ProvidersModule)
   },

@@ -19,6 +19,5 @@ dependencies {
 
 docker {
     name = "solidblocks-rds-postgres"
-    copySpec.from("${projectDir}/bin").into("bin")
+    copySpec.from("$projectDir/bin").into("bin")
 }
-

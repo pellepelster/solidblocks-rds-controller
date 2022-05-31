@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core'
 import {HttpClient} from "@angular/common/http"
-import {CreateProviderResponse, ProviderResponse, ProviderResponseWrapper, ProvidersResponseWrapper} from "./types";
+import {ProviderResponseWrapper, ProvidersResponseWrapper} from "./types";
 import {environment} from "../../environments/environment";
 
 @Injectable({
@@ -13,7 +13,7 @@ export class ProvidersService {
   }
 
   public create(name: String, apiKey: String) {
-    return this.http.post<CreateProviderResponse>(`${environment.apiAddress}/v1/providers`, {
+    return this.http.post<ProviderResponseWrapper>(`${environment.apiAddress}/v1/providers`, {
       name,
       apiKey
     });

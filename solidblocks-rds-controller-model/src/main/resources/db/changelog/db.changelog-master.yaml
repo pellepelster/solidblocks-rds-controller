@@ -3,6 +3,7 @@ databaseChangeLog:
       id: 1
       author: pelle
       changes:
+
         - createTable:
             tableName: scheduled_tasks
             columns:
@@ -49,6 +50,7 @@ databaseChangeLog:
                   type: bigint
                   constraints:
                     nullable: false
+
         - createIndex:
             columns:
               - column:
@@ -58,6 +60,7 @@ databaseChangeLog:
             indexName: idx_scheduled_tasks_name_instance
             tableName: scheduled_tasks
             unique: true
+
         - createTable:
             tableName: shedlock
             columns:
@@ -83,33 +86,6 @@ databaseChangeLog:
                   type: TIMESTAMP
                   constraints:
                     nullable: false
-        - createTable:
-            tableName: rds_instances
-            columns:
-              - column:
-                  name: id
-                  type: uuid
-                  constraints:
-                    primaryKey: true
-                    nullable: false
-              - column:
-                  name: name
-                  type: varchar(256)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: deleted
-                  type: boolean
-                  constraints:
-                    nullable: false
-
-        - createIndex:
-            columns:
-              - column:
-                  name: name
-            indexName: rds_instances_name
-            tableName: rds_instances
-            unique: true
 
         - createTable:
             tableName: providers
@@ -137,6 +113,41 @@ databaseChangeLog:
                   name: name
             indexName: providers_name
             tableName: providers
+            unique: true
+
+        - createTable:
+            tableName: rds_instances
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: provider
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_rds_instances_provider
+                    references: providers(id)
+              - column:
+                  name: name
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted
+                  type: boolean
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            columns:
+              - column:
+                  name: name
+            indexName: rds_instances_name
+            tableName: rds_instances
             unique: true
 
         - createTable:

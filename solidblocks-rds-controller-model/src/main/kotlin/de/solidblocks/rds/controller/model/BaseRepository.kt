@@ -17,7 +17,6 @@ abstract class BaseRepository(val dsl: DSLContext) {
 
     protected class RdsInstanceId(val id: UUID) : IdType(id)
 
-
     protected fun latestConfigurationValuesQuery(referenceColumn: TableField<ConfigurationValuesRecord, UUID?>): Table<Record5<UUID?, UUID?, String?, String?, Int?>> {
 
         val latestVersions = dsl.select(
@@ -80,6 +79,4 @@ abstract class BaseRepository(val dsl: DSLContext) {
 
         return result == 1
     }
-
-
 }

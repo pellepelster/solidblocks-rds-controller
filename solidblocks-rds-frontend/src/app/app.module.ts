@@ -9,9 +9,9 @@ import {NgbModule} from '@ng-bootstrap/ng-bootstrap';
 import {NavigationComponent} from './components/navigation/navigation.component';
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {ToastsContainer} from "./utils/toasts.container";
-import {ServicesModule} from "./components/services/services-module";
 import {ControlsModule} from "./components/controls/controls-module";
 import {ProvidersModule} from "./components/providers/providers-module";
+import {RdsInstancesModule} from "./components/rds-instances/rds-instances-module";
 
 @NgModule({
   declarations: [
@@ -27,7 +27,7 @@ import {ProvidersModule} from "./components/providers/providers-module";
     NgbModule,
     ReactiveFormsModule,
     FormsModule,
-    ServicesModule,
+    RdsInstancesModule,
     ProvidersModule,
     ControlsModule
   ],

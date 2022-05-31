@@ -21,29 +21,21 @@ export interface ProviderResponseWrapper {
   provider: ProviderResponse
 }
 
-export interface CreateProviderResponse {
-  provider: ProviderResponse
-  messages: Array<MessageResponse>
-}
-
-// service
-export interface ServiceCatalogItem {
-  type: string
-  description: string
-}
-
-export interface ServiceCatalogResponse {
-  items: Array<ServiceCatalogItem>
-}
-
-export interface Service {
-  id: string
-  name: string
-}
-
-
 export interface MessageResponse {
   attribute: string
   code: string
 }
 
+// rds instance
+export interface RdsInstanceResponse {
+  name: string
+  id: string
+}
+
+export interface RdsInstancesResponseWrapper {
+  rdsInstances: Array<RdsInstanceResponse>
+}
+
+export interface RdsInstanceResponseWrapper {
+  rdsInstance: RdsInstanceResponse
+}

@@ -4,29 +4,31 @@ import de.solidblocks.rds.controller.model.tables.references.CONFIGURATION_VALUE
 import de.solidblocks.rds.controller.model.tables.references.RDS_INSTANCES
 import org.jooq.Condition
 import org.jooq.DSLContext
-import org.jooq.Record5
 import java.util.*
 
 class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
 
-    val rdsInstances = RDS_INSTANCES.`as`("rds_instances")
+    private val rdsInstances = RDS_INSTANCES.`as`("rds_instances")
 
     fun create(
-        name: String, configValues: List<Pair<String, String>> = emptyList()
+        providerId: UUID,
+        name: String,
+        configValues: Map<String, String> = emptyMap()
     ): RdsInstanceEntity? {
         val id = UUID.randomUUID()
 
         dsl.insertInto(RDS_INSTANCES).columns(
-            RDS_INSTANCES.ID, RDS_INSTANCES.NAME, RDS_INSTANCES.DELETED
-        ).values(id, name, false).execute()
+            RDS_INSTANCES.ID, RDS_INSTANCES.NAME, RDS_INSTANCES.PROVIDER, RDS_INSTANCES.DELETED
+        ).values(id, name, providerId, false).execute()
 
         configValues.forEach {
-            setConfiguration(RdsInstanceId(id), it.first, it.second)
+            setConfiguration(RdsInstanceId(id), it.key, it.value)
         }
 
         return read(id)
     }
 
+    fun list(providerId: UUID) = list(rdsInstances.PROVIDER.eq(providerId))
 
     fun list(filter: Condition? = null): List<RdsInstanceEntity> {
 
@@ -58,6 +60,15 @@ class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
         }
     }
 
+    fun delete(id: UUID): Boolean {
+        dsl.delete(CONFIGURATION_VALUES).where(CONFIGURATION_VALUES.RDS_INSTANCE.eq(id)).execute()
+        return dsl.delete(RDS_INSTANCES).where(RDS_INSTANCES.ID.eq(id)).execute() == 1
+    }
+
+    fun exists(name: String): Boolean {
+        return dsl.selectFrom(RDS_INSTANCES).where(RDS_INSTANCES.NAME.eq(name)).count() == 1
+    }
+
     fun update(id: UUID, values: Map<String, String>): Boolean {
         return values.map {
             update(id, it.key, it.value)
@@ -73,14 +84,17 @@ class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
     }
 
     fun update(
-        name: String, key: String, value: String?
+        name: String,
+        key: String,
+        value: String?
     ): Boolean {
         val instance = read(name) ?: return false
         return setConfiguration(RdsInstanceId(instance.id), key, value)
     }
 
     private fun update(
-        id: UUID, key: String, value: String
+        id: UUID,
+        key: String,
+        value: String
     ) = setConfiguration(RdsInstanceId(id), key, value)
-
 }

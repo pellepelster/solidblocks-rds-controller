@@ -11,11 +11,7 @@ import de.solidblocks.rds.postgres.Constants.SERVICE_ID_KEY
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import mu.KotlinLogging
-import java.io.File
-import java.io.IOException
-import java.net.InetAddress
 import java.net.InetSocketAddress
-import java.net.Socket
 import java.net.URI
 import java.nio.file.Path
 import java.time.Duration
@@ -23,7 +19,6 @@ import java.time.Instant
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.concurrent.thread
-
 
 class DockerManager(
     private val id: String,
@@ -175,7 +170,7 @@ class DockerManager(
             mappedPorts(it)?.let { port ->
                 (0 until total).map { i ->
                     Thread.sleep(1000)
-                    logger.info { "running healtcheck ${i} out of ${total}" }
+                    logger.info { "running healtcheck $i out of $total" }
                     healthCheck.invoke(InetSocketAddress("localhost", port))
                 }.all { it }
             }

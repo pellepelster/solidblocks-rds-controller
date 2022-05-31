@@ -12,7 +12,6 @@ dependencies {
 
     implementation("org.yaml:snakeyaml:1.30")
 
-
     jooqGenerator("org.jooq:jooq-meta-extensions-liquibase")
     jooqGenerator("org.liquibase:liquibase-core")
     jooqGenerator("org.yaml:snakeyaml:1.30")

@@ -6,7 +6,6 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.sql.DriverManager
 
-
 object HealthChecks {
 
     private val logger = KotlinLogging.logger {}
@@ -23,11 +22,13 @@ object HealthChecks {
     }
 
     fun checkPostgres(
-        database: String, user: String, password: String
+        database: String,
+        user: String,
+        password: String
     ): (address: InetSocketAddress) -> Boolean = check@{ address ->
         try {
             val url =
-                "jdbc:postgresql://${address.hostName}:${address.port}/${database}?user=${user}&password=${password}"
+                "jdbc:postgresql://${address.hostName}:${address.port}/$database?user=$user&password=$password"
 
             DriverManager.getConnection(url).use { connection ->
 

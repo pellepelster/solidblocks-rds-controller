@@ -1,0 +1,22 @@
+<div class="container h-100">
+  <div class="row d-flex justify-content-center align-items-center h-100">
+    <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+      <div class="card" style="border-radius: 1rem;">
+        <div class="card-body p-5">
+
+          <h2 class="mb-2">Create RDS Instance</h2>
+
+          <ng-template rdsInstanceWizardSteps></ng-template>
+
+          <button type="button" class="btn btn-primary" [disabled]="!hasPreviousStep()" (click)="previousStep()">Back</button>
+
+          <button type="button" class="btn btn-primary" *ngIf="hasNextStep()" [disabled]="!currentStepValid()" (click)="nextStep()">Next</button>
+          <button type="button" class="btn btn-primary" *ngIf="!hasNextStep()" [disabled]="!currentStepValid()" (click)="finish()">Finish</button>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+

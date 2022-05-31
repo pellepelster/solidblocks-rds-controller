@@ -1,6 +1,5 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from "@angular/router";
-import {Subscription} from "rxjs";
 import {ToastService} from "../../../utils/toast.service";
 import {ProvidersService} from "../../../services/providers.service";
 import {ProviderResponse} from "../../../services/types";

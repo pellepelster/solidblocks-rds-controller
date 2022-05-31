@@ -12,6 +12,7 @@ import {ProvidersListItemComponent} from "./providers-list-item.component";
 import {ProvidersRoutingModule} from "./providers-routing-module";
 import {ProvidersComponent} from "./providers.component";
 import {ProvidersDetailsComponent} from "./providers-details/providers-details.component";
+import {RdsInstancesModule} from "../rds-instances/rds-instances-module";
 
 @NgModule({
   declarations: [
@@ -29,7 +30,8 @@ import {ProvidersDetailsComponent} from "./providers-details/providers-details.c
     CommonModule,
     ControlsModule,
     ReactiveFormsModule,
-    ProvidersRoutingModule
+    ProvidersRoutingModule,
+    RdsInstancesModule
   ]
 })
 export class ProvidersModule {

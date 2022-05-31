@@ -1,79 +1,79 @@
 package de.solidblocks.rds.controller.providers
 
-import de.solidblocks.rds.controller.ErrorCodes
-import de.solidblocks.rds.controller.Utils
 import de.solidblocks.rds.controller.api.CreationResult
 import de.solidblocks.rds.controller.api.ValidationResult
+import de.solidblocks.rds.controller.instances.RdsInstancesManager
 import de.solidblocks.rds.controller.model.Constants.API_KEY
 import de.solidblocks.rds.controller.model.Constants.SSH_PRIVATE_KEY
 import de.solidblocks.rds.controller.model.Constants.SSH_PUBLIC_KEY
 import de.solidblocks.rds.controller.model.ProvidersRepository
 import de.solidblocks.rds.controller.providers.api.ProviderCreateRequest
 import de.solidblocks.rds.controller.providers.api.ProviderResponse
+import de.solidblocks.rds.controller.utils.ErrorCodes
+import de.solidblocks.rds.controller.utils.Utils
 import me.tomsdevsn.hetznercloud.HetznerCloudAPI
-import me.tomsdevsn.hetznercloud.objects.request.SSHKeyRequest
 import mu.KotlinLogging
 import java.util.UUID
 
-class ProvidersManager(private val providersRepository: ProvidersRepository) {
+class ProvidersManager(
+    private val repository: ProvidersRepository,
+    private val rdsInstancesManager: RdsInstancesManager
+) {
 
     private val logger = KotlinLogging.logger {}
 
-    fun apply() {
+    fun apply(): Boolean {
 
-        val providers = providersRepository.list()
+        val providers = repository.list()
 
         if (providers.isEmpty()) {
-
             logger.info {
-                "no providers found, skipping apply"
+                "no provider configurations found, skipping apply"
             }
 
-            return
+            return true
         }
 
-        for (provider in providersRepository.list()) {
+        return providers.map {
             logger.info {
-                "applying config for provider '${provider.name}'"
+                "applying config for provider '${it.name}'"
             }
 
-            val cloudApi = HetznerCloudAPI(provider.apiKey()!!)
-
-            val sshKey = cloudApi.getSSHKeyByName(provider.name)
-
-            if (sshKey.sshKeys.isEmpty()) {
-                logger.warn {
-                    "ssh key not found for provider '${provider.name}'"
+            if (it.apiKey() == null) {
+                logger.error {
+                    "provider '${it.name}' has no api key configured"
                 }
-
-                val response = cloudApi.createSSHKey(SSHKeyRequest(provider.name, provider.sshPublicKey()))
-
-                if (response.sshKey != null) {
-                    logger.info {
-                        "created ssh key with fingerprint '${response.sshKey.fingerprint}'"
-                    }
-                } else {
-                    logger.error {
-                        "creating ssh key failed for provider '${provider.name}'"
-                    }
-                }
+                return@map false
             }
-        }
+
+            val hetznerApi = HetznerApi(it.apiKey()!!)
+            val response = hetznerApi.ensureSSHKey(it.name, it.sshPublicKey()!!)
+
+            if (!response) {
+                logger.error {
+                    "creating ssh key failed for provider '${it.name}'"
+                }
+
+                return@map false
+            }
+
+            return@map rdsInstancesManager.apply(hetznerApi, it)
+        }.all { it }
     }
 
-    fun get(id: UUID) = providersRepository.read(id)?.let {
+    fun get(id: UUID) = repository.read(id)?.let {
         ProviderResponse(it.id, it.name)
     }
 
-    fun delete(id: UUID) = providersRepository.delete(id)
+    fun delete(id: UUID) = repository.delete(id)
 
-    fun list() = providersRepository.list().map {
+    fun list() = repository.list().map {
         ProviderResponse(it.id, it.name)
     }
 
     fun validate(request: ProviderCreateRequest): ValidationResult {
 
-        if (providersRepository.exists(request.name)) {
+        if (repository.exists(request.name)) {
             return ValidationResult.error(ProviderCreateRequest::name, ErrorCodes.DUPLICATE)
         }
 
@@ -90,15 +90,19 @@ class ProvidersManager(private val providersRepository: ProvidersRepository) {
     fun create(request: ProviderCreateRequest): CreationResult<ProviderResponse> {
         val sshKey = Utils.generateSshKey(request.name)
 
-        val entity = providersRepository.create(
-            request.name, mapOf(
-                API_KEY to request.apiKey, SSH_PUBLIC_KEY to sshKey.second, SSH_PRIVATE_KEY to sshKey.first
+        val entity = repository.create(
+            request.name,
+            mapOf(
+                API_KEY to request.apiKey,
+                SSH_PUBLIC_KEY to sshKey.publicKey,
+                SSH_PRIVATE_KEY to sshKey.privateKey
             )
         )
 
-        return CreationResult(entity?.let {
-            ProviderResponse(it.id, it.name)
-        })
+        return CreationResult(
+            entity?.let {
+                ProviderResponse(it.id, it.name)
+            }
+        )
     }
-
 }

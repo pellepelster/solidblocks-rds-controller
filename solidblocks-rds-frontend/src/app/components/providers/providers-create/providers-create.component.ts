@@ -6,7 +6,7 @@ import {ToastService} from "../../../utils/toast.service";
 import {Router} from "@angular/router";
 
 @Directive({
-  selector: '[providerWizardSteps]'
+  selector: '[providersWizardSteps]'
 })
 export class ProviderWizardStepsDirective {
   constructor(public viewContainerRef: ViewContainerRef) {
