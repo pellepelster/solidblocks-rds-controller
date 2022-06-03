@@ -35,3 +35,4 @@ dependencies {
 application {
     mainClass.set("de.solidblocks.rds.controller.ApplicationCliKt")
 }
+
