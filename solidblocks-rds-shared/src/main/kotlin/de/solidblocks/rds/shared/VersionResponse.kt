@@ -1,4 +1,4 @@
-package de.solidblocks.rds.agent
+package de.solidblocks.rds.shared
 
 const val AGENT_BASE_PATH = "/v1/agent"
 

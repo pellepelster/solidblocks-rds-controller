@@ -19,13 +19,21 @@ class UtilsTest {
     }
 
     @Test
-    fun testX509CertificateGeneration() {
-        val result = Utils.generateX509Certificate()
+    fun testGenerateCertificate() {
+        val caResult = Utils.generateCAKeyPAir()
 
-        assertThat(result.privateKey, startsWith("-----BEGIN EC PRIVATE KEY-----"))
-        assertThat(result.privateKey, endsWith("-----END EC PRIVATE KEY-----\n"))
+        assertThat(caResult.privateKey, startsWith("-----BEGIN PRIVATE KEY-----"))
+        assertThat(caResult.privateKey, endsWith("-----END PRIVATE KEY-----\n"))
 
-        assertThat(result.publicKey, startsWith("-----BEGIN CERTIFICATE-----"))
-        assertThat(result.publicKey, endsWith("-----END CERTIFICATE-----\n"))
+        assertThat(caResult.publicKey, startsWith("-----BEGIN CERTIFICATE-----"))
+        assertThat(caResult.publicKey, endsWith("-----END CERTIFICATE-----\n"))
+
+        val certificateResult = Utils.createCertificate(caResult.privateKey, caResult.publicKey)
+
+        assertThat(certificateResult.privateKey, startsWith("-----BEGIN PRIVATE KEY-----"))
+        assertThat(certificateResult.privateKey, endsWith("-----END PRIVATE KEY-----\n"))
+
+        assertThat(certificateResult.publicKey, startsWith("-----BEGIN CERTIFICATE-----"))
+        assertThat(certificateResult.publicKey, endsWith("-----END CERTIFICATE-----\n"))
     }
 }

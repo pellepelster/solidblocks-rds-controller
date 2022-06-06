@@ -5,7 +5,9 @@ import com.jcabi.manifests.Manifests
 import de.solidblocks.agent.base.api.TriggerUpdateResponse
 import de.solidblocks.rds.agent.TriggerShutdownRequest.TRIGGER_SHUTDOWN_PATH
 import de.solidblocks.rds.agent.TriggerUpdateRequest.Companion.TRIGGER_UPDATE_PATH
-import de.solidblocks.rds.agent.VersionResponse.Companion.VERSION_PATH
+import de.solidblocks.rds.shared.AGENT_BASE_PATH
+import de.solidblocks.rds.shared.VersionResponse
+import de.solidblocks.rds.shared.VersionResponse.Companion.VERSION_PATH
 import io.vertx.core.Vertx
 import io.vertx.ext.web.Router
 import mu.KotlinLogging

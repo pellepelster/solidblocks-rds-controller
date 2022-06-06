@@ -12,7 +12,7 @@ import java.security.cert.X509Certificate
 
 class MtlsHttpClient(
     val baseAddress: String,
-    caCertificateRaw: String,
+    caPublicKeyRaw: String,
     privateKeyRaw: String,
     publicKeyRaw: String
 ) {
@@ -24,11 +24,14 @@ class MtlsHttpClient(
         val key = PemUtils.loadPrivateKey(privateKeyRaw.byteInputStream())
 
         val certificateFactory = CertificateFactory.getInstance("X.509")
+
         val caCertificate =
-            certificateFactory.generateCertificate(caCertificateRaw.byteInputStream()) as X509Certificate
+            certificateFactory.generateCertificate(caPublicKeyRaw.byteInputStream()) as X509Certificate
+        val certificate =
+            certificateFactory.generateCertificate(publicKeyRaw.byteInputStream()) as X509Certificate
 
         val sslFactory = SSLFactory.builder()
-            .withIdentityMaterial(key, null, publicKeyRaw)
+            .withIdentityMaterial(key, null, certificate)
             .withTrustMaterial(
                 caCertificate
             ).build()
@@ -37,6 +40,7 @@ class MtlsHttpClient(
             sslFactory.sslSocketFactory,
             sslFactory.trustManager.get()
         )
+            .retryOnConnectionFailure(false)
             .build()
     }
 

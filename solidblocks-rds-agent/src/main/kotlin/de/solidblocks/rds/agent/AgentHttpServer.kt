@@ -23,9 +23,9 @@ class AgentHttpServer(
 
     private val logger = KotlinLogging.logger {}
 
-    val shutdown = CountDownLatch(1)
+    private val shutdown = CountDownLatch(1)
 
-    var server: HttpServer
+    private var server: HttpServer
 
     init {
         val vertx = Vertx.vertx()

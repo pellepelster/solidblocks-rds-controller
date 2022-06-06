@@ -30,9 +30,10 @@ dependencies {
     testImplementation(project(":solidblocks-rds-test"))
 
     testImplementation("io.mockk:mockk:1.12.4")
+
+    testImplementation("org.awaitility:awaitility:4.2.0")
 }
 
 application {
     mainClass.set("de.solidblocks.rds.controller.ApplicationCliKt")
 }
-

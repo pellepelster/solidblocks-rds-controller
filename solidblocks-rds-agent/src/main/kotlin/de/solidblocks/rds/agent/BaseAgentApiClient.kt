@@ -1,6 +1,8 @@
 package de.solidblocks.rds.agent
 
 import de.solidblocks.agent.base.api.TriggerUpdateResponse
+import de.solidblocks.rds.shared.AGENT_BASE_PATH
+import de.solidblocks.rds.shared.VersionResponse
 import mu.KotlinLogging
 
 class BaseAgentApiClient(
