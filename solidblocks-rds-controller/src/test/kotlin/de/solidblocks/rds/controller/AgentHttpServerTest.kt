@@ -9,6 +9,8 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
+import org.testcontainers.shaded.org.awaitility.Awaitility
+import java.net.Socket
 import kotlin.concurrent.thread
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -24,19 +26,24 @@ class AgentHttpServerTest {
     fun beforeAll() {
 
         thread {
-            AgentHttpServer(8080, clientCa.publicKey, serverKeyPair.privateKey, serverKeyPair.publicKey).waitForShutdown()
+            AgentHttpServer(
+                8080,
+                clientCa.publicKey,
+                serverKeyPair.privateKey,
+                serverKeyPair.publicKey
+            ).waitForShutdown()
         }
 
-        /*
         Awaitility.await().until {
             try {
                 Socket("127.0.0.1", 8080).use {
-                    it.getInputStream().read() > 0
+                    it.getOutputStream().write(1)
+                    true
                 }
             } catch (e: Exception) {
                 false
             }
-        }*/
+        }
     }
 
     @AfterAll
@@ -45,7 +52,12 @@ class AgentHttpServerTest {
 
     @Test
     fun testGetVersion() {
-        val client = MtlsHttpClient("https://localhost:8080", serverCa.publicKey, clientKeyPair.privateKey, clientKeyPair.publicKey)
+        val client = MtlsHttpClient(
+            "https://localhost:8080",
+            serverCa.publicKey,
+            clientKeyPair.privateKey,
+            clientKeyPair.publicKey
+        )
         val version = client.get<VersionResponse>("/v1/agent/version")
 
         assertThat(version.code).isEqualTo(200)
