@@ -6,7 +6,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":solidblocks-rds-shared"))
+    implementation(project(":solidblocks-rds-model-shared"))
 
     implementation("io.vertx:vertx-web:$vertX")
     implementation("io.vertx:vertx-lang-kotlin:$vertX")
@@ -19,6 +19,8 @@ dependencies {
     implementation("io.github.hakky54:sslcontext-kickstart-for-pem:7.2.0")
 
     implementation("com.jcabi:jcabi-manifests:1.1")
+
+    testImplementation(project(":solidblocks-rds-backend-base"))
 }
 
 application {

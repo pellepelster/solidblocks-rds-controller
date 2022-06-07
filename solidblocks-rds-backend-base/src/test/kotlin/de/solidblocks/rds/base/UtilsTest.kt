@@ -1,6 +1,5 @@
-package de.solidblocks.rds.controller
+package de.solidblocks.rds.base
 
-import de.solidblocks.rds.controller.utils.Utils
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.endsWith
 import org.hamcrest.Matchers.startsWith

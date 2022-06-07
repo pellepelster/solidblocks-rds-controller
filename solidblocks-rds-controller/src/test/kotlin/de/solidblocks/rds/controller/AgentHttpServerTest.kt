@@ -2,7 +2,7 @@ package de.solidblocks.rds.controller
 
 import de.solidblocks.rds.agent.AgentHttpServer
 import de.solidblocks.rds.agent.MtlsHttpClient
-import de.solidblocks.rds.controller.utils.Utils
+import de.solidblocks.rds.base.Utils
 import de.solidblocks.rds.shared.VersionResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll

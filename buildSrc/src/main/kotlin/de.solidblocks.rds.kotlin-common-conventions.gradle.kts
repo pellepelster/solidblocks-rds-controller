@@ -32,14 +32,18 @@ dependencies {
     implementation(platform("org.jetbrains.kotlin:kotlin-bom"))
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 
+    implementation("io.github.microutils:kotlin-logging-jvm:2.0.6")
+    implementation("ch.qos.logback:logback-classic:1.2.10")
+
     testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
     testImplementation("org.assertj:assertj-core:3.22.0")
 
     testImplementation("org.testcontainers:testcontainers:$testContainersVersion")
     testImplementation("org.testcontainers:junit-jupiter:$testContainersVersion")
 
-    implementation("io.github.microutils:kotlin-logging-jvm:2.0.6")
-    implementation("ch.qos.logback:logback-classic:1.2.10")
+    testImplementation("io.mockk:mockk:1.12.4")
+    testImplementation("org.awaitility:awaitility:4.2.0")
+    testImplementation("org.awaitility:awaitility-kotlin:4.2.0")
 }
 
 tasks.test {

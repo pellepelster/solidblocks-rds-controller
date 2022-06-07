@@ -1,4 +1,4 @@
-package de.solidblocks.rds.controller.utils
+package de.solidblocks.rds.base
 
 import org.bouncycastle.asn1.DERSequence
 import org.bouncycastle.asn1.x500.X500Name

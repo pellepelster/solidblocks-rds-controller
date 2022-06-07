@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
 
-    implementation(project(":solidblocks-rds-base"))
+    implementation(project(":solidblocks-rds-backend-base"))
 
     implementation("org.apache.derby:derbytools:10.15.2.0")
     implementation("org.apache.derby:derby:10.15.2.0")

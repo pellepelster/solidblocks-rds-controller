@@ -6,7 +6,7 @@ plugins {
 
 dependencies {
 
-    implementation(project(":solidblocks-rds-base"))
+    implementation(project(":solidblocks-rds-backend-base"))
 
     implementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }

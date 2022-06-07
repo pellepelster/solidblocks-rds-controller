@@ -5,8 +5,8 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":solidblocks-rds-base"))
-    implementation(project(":solidblocks-rds-shared"))
+    implementation(project(":solidblocks-rds-backend-base"))
+    implementation(project(":solidblocks-rds-model-shared"))
     implementation(project(":solidblocks-rds-controller-model"))
 
     implementation("io.vertx:vertx-web:$vertX")
@@ -23,15 +23,8 @@ dependencies {
 
     implementation("me.tomsdevsn:hetznercloud-api:2.13.0")
 
-    implementation("org.bouncycastle:bcprov-jdk15to18:1.70")
-    implementation("org.bouncycastle:bcpkix-jdk15on:1.70")
-
     testImplementation(project(":solidblocks-rds-agent"))
     testImplementation(project(":solidblocks-rds-test"))
-
-    testImplementation("io.mockk:mockk:1.12.4")
-
-    testImplementation("org.awaitility:awaitility:4.2.0")
 }
 
 application {
