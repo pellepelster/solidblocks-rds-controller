@@ -7,6 +7,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":solidblocks-rds-shared"))
     implementation(project(":solidblocks-rds-model-shared"))
 
     implementation("org.freemarker:freemarker:2.3.31")
@@ -19,10 +20,8 @@ dependencies {
     implementation("io.github.resilience4j:resilience4j-kotlin:1.7.1")
     implementation("io.github.resilience4j:resilience4j-retry:1.7.1")
 
-
     implementation("io.vertx:vertx-web:$vertX")
     implementation("io.vertx:vertx-lang-kotlin:$vertX")
-    implementation("com.squareup.okhttp3:okhttp:4.9.3")
 
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.3")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.13.3")
@@ -32,6 +31,7 @@ dependencies {
 
     implementation("com.jcabi:jcabi-manifests:1.1")
 
+    testImplementation(project(":solidblocks-rds-shared"))
     testImplementation(project(":solidblocks-rds-backend-base"))
 }
 

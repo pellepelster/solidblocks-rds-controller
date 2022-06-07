@@ -1,7 +1,6 @@
 package de.solidblocks.rds.postgresql.docker
 
 import de.solidblocks.rds.agent.initWorldReadableTempDir
-import de.solidblocks.rds.postgresql.docker.PostgresqlDockerInstance
 import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import java.util.*

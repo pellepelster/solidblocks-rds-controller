@@ -1,6 +1,7 @@
 package de.solidblocks.rds.agent
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import de.solidblocks.rds.shared.defaultHttpClientBuilder
 import nl.altindag.ssl.SSLFactory
 import nl.altindag.ssl.util.PemUtils
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -36,7 +37,7 @@ class MtlsHttpClient(
                 caCertificate
             ).build()
 
-        client = OkHttpClient.Builder().sslSocketFactory(
+        client = defaultHttpClientBuilder().sslSocketFactory(
             sslFactory.sslSocketFactory,
             sslFactory.trustManager.get()
         )

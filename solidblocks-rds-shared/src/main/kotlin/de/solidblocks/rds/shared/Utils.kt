@@ -1,4 +1,4 @@
-package de.solidblocks.rds.docker
+package de.solidblocks.rds.shared
 
 import okhttp3.OkHttpClient
 import java.time.Duration

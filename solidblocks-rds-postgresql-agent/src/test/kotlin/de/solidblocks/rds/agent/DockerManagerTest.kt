@@ -2,7 +2,7 @@ package de.solidblocks.rds.agent
 
 import de.solidblocks.rds.docker.DockerManager
 import de.solidblocks.rds.docker.HealthChecks
-import de.solidblocks.rds.docker.defaultHttpClient
+import de.solidblocks.rds.shared.defaultHttpClient
 import mu.KotlinLogging
 import okhttp3.Request
 import org.assertj.core.api.Assertions.assertThat
