@@ -6,7 +6,7 @@ DIR="$( cd "$(dirname "$0")" ; pwd -P )"
 
 SOLIDBLOCKS_DIR="${SOLIDBLOCKS_DIR:-/solidblocks}"
 SOLIDBLOCKS_BOOTSTRAP_ADDRESS="${SOLIDBLOCKS_BOOTSTRAP_ADDRESS:-https://maven.pkg.github.com}"
-SOLIDBLOCKS_SERVICE="solidblocks-rds-agent"
+SOLIDBLOCKS_SERVICE="solidblocks-rds-postgresql-agent"
 
 export $(xargs < "${SOLIDBLOCKS_DIR}/instance/environment")
 export $(xargs < "${SOLIDBLOCKS_DIR}/protected/environment")

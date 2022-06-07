@@ -23,7 +23,7 @@ dependencies {
 
     implementation("me.tomsdevsn:hetznercloud-api:2.13.0")
 
-    testImplementation(project(":solidblocks-rds-agent"))
+    testImplementation(project(":solidblocks-rds-postgresql-agent"))
     testImplementation(project(":solidblocks-rds-test"))
 }
 
