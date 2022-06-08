@@ -11,4 +11,6 @@ object Constants {
     val labelNamespace: String = "solidblocks.de"
 
     val managedByLabel: String = "$labelNamespace/managed"
+
+    val versionLabel: String = "$labelNamespace/version"
 }

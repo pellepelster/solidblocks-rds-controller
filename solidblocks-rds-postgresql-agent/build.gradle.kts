@@ -29,8 +29,6 @@ dependencies {
     implementation("io.github.hakky54:sslcontext-kickstart:7.2.0")
     implementation("io.github.hakky54:sslcontext-kickstart-for-pem:7.2.0")
 
-    implementation("com.jcabi:jcabi-manifests:1.1")
-
     testImplementation(project(":solidblocks-rds-shared"))
     testImplementation(project(":solidblocks-rds-backend-base"))
 }

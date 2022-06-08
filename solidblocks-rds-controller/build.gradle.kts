@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     implementation(project(":solidblocks-rds-backend-base"))
+    implementation(project(":solidblocks-rds-shared"))
     implementation(project(":solidblocks-rds-model-shared"))
     implementation(project(":solidblocks-rds-controller-model"))
 

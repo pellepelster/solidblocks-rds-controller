@@ -2,7 +2,9 @@ package de.solidblocks.rds.controller.providers
 
 import de.solidblocks.rds.controller.model.RdsInstanceEntity
 import de.solidblocks.rds.controller.utils.Constants.managedByLabel
+import de.solidblocks.rds.controller.utils.Constants.versionLabel
 import de.solidblocks.rds.controller.utils.Waiter
+import de.solidblocks.rds.shared.solidblocksVersion
 import me.tomsdevsn.hetznercloud.HetznerCloudAPI
 import me.tomsdevsn.hetznercloud.objects.general.Action
 import me.tomsdevsn.hetznercloud.objects.general.Server
@@ -20,7 +22,7 @@ class HetznerApi(apiToken: String) {
     private val hetznerCloudAPI = HetznerCloudAPI(apiToken)
 
     fun deleteAllServers(): Boolean {
-        return allServers().map {
+        return allManagedServers().map {
             logger.info { "deleting server '${it.name}'" }
 
             try {
@@ -101,14 +103,14 @@ class HetznerApi(apiToken: String) {
 
     fun hasServer(name: String) = getServer(name) != null
 
-    fun getServer(name: String) = allServers().firstOrNull { it.name == name }
+    fun getServer(name: String) = allManagedServers().firstOrNull { it.name == name }
 
-    fun allServers() = hetznerCloudAPI.servers.servers.filter { it.labels.get(managedByLabel) == "true" }
+    fun allManagedServers() = hetznerCloudAPI.servers.servers.filter { it.labels[managedByLabel] == true.toString() }
 
     fun cleanupServersNotInList(instances: List<RdsInstanceEntity>): Boolean {
         logger.info { "cleaning up deleted servers" }
 
-        return allServers().map { server ->
+        return allManagedServers().map { server ->
 
             if (instances.none { server.name == it.name }) {
                 logger.info { "removing server '${server.name}'" }
@@ -161,6 +163,7 @@ class HetznerApi(apiToken: String) {
                     .sshKey(sshKey.name)
                     .startAfterCreate(false)
                     .label(managedByLabel, "true")
+                    .label(versionLabel, solidblocksVersion())
                     .serverType("cx11")
                     .name(serverName).build()
             )

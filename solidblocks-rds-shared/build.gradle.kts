@@ -4,4 +4,6 @@ plugins {
 
 dependencies {
     api("com.squareup.okhttp3:okhttp:4.9.3")
+
+    implementation("com.jcabi:jcabi-manifests:1.1")
 }
