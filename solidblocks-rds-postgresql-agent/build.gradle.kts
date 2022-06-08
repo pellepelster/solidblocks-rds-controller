@@ -10,8 +10,6 @@ dependencies {
     implementation(project(":solidblocks-rds-shared"))
     implementation(project(":solidblocks-rds-model-shared"))
 
-    implementation("org.freemarker:freemarker:2.3.31")
-
     implementation("com.github.docker-java:docker-java-core:3.2.12")
     implementation("com.github.docker-java:docker-java-transport-zerodep:3.2.12")
 

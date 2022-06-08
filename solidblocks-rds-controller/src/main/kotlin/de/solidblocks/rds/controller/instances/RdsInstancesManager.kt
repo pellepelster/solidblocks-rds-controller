@@ -35,7 +35,7 @@ class RdsInstancesManager(private val repository: RdsInstancesRepository) {
             }
 
             hetznerApi.ensureVolume(data1VolumeName(it))
-            hetznerApi.ensureServer(serverName(it), data1VolumeName(it), sshKeyName(provider))
+            hetznerApi.ensureServer(serverName(it), data1VolumeName(it), "", sshKeyName(provider))
 
             true
         }.all { it }

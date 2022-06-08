@@ -5,11 +5,11 @@ import de.solidblocks.rds.agent.MtlsHttpClient
 import de.solidblocks.rds.base.Utils
 import de.solidblocks.rds.shared.VersionResponse
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.Awaitility
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.testcontainers.shaded.org.awaitility.Awaitility
 import java.net.Socket
 import kotlin.concurrent.thread
 

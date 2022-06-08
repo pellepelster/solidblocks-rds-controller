@@ -1,8 +1,11 @@
 package de.solidblocks.rds.controller.providers
 
 import de.solidblocks.rds.controller.model.RdsInstanceEntity
+import de.solidblocks.rds.controller.utils.Constants.cloudInitChecksumLabel
+import de.solidblocks.rds.controller.utils.Constants.labelNamespace
 import de.solidblocks.rds.controller.utils.Constants.managedByLabel
 import de.solidblocks.rds.controller.utils.Constants.versionLabel
+import de.solidblocks.rds.controller.utils.HetznerLabels
 import de.solidblocks.rds.controller.utils.Waiter
 import de.solidblocks.rds.shared.solidblocksVersion
 import me.tomsdevsn.hetznercloud.HetznerCloudAPI
@@ -137,7 +140,7 @@ class HetznerApi(apiToken: String) {
         return waitForServerAction(server, response.action)
     }
 
-    fun ensureServer(serverName: String, volumeName: String, sshKeyName: String): Boolean {
+    fun ensureServer(serverName: String, volumeName: String, userData: String, sshKeyName: String): Boolean {
 
         val volume = getVolume(volumeName)
         if (volume == null) {
@@ -151,19 +154,27 @@ class HetznerApi(apiToken: String) {
             return false
         }
 
+        val additionalSSHKeys = hetznerCloudAPI.sshKeys.sshKeys.filter { it.id == sshKey.id }
+
         var server = getServer(serverName)
 
         if (server == null) {
             logger.info { "creating server '$serverName'" }
+
+            val labels = HetznerLabels(labelNamespace)
+            labels.addLabel(managedByLabel, "true")
+            labels.addLabel(versionLabel, solidblocksVersion())
+            labels.addLabel(cloudInitChecksumLabel, solidblocksVersion())
 
             val response = hetznerCloudAPI.createServer(
                 ServerRequest.builder()
                     .location("nbg1")
                     .image("debian-10")
                     .sshKey(sshKey.name)
+                    .sshKeys(additionalSSHKeys.map { it.name })
+                    .userData(userData)
                     .startAfterCreate(false)
-                    .label(managedByLabel, "true")
-                    .label(versionLabel, solidblocksVersion())
+                    .labels(labels.labels())
                     .serverType("cx11")
                     .name(serverName).build()
             )

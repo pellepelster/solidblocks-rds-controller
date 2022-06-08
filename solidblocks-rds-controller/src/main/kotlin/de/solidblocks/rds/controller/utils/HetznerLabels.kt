@@ -3,7 +3,7 @@ package de.solidblocks.rds.controller.utils
 import java.lang.RuntimeException
 import java.security.MessageDigest
 
-class HetznerLabels(hetznerLabels: Map<String, String> = HashMap()) {
+class HetznerLabels(private val namespace: String, hetznerLabels: Map<String, String> = HashMap()) {
 
     private val labels: HashMap<String, String> = HashMap()
 
@@ -37,12 +37,24 @@ class HetznerLabels(hetznerLabels: Map<String, String> = HashMap()) {
 
     private fun safeLabels(): Map<String, String> {
 
-        val l = labels.entries
-            .map { it.key.split("_") to it.value }
-            .map { (it.first[0] to it.first.getOrElse(1) { "0" }.toLong()) to it.second }
-            .sortedWith(compareBy({ it.first.first }, { it.first.second }))
+        data class IndexedLabelKey(val key: String, val index: Int)
 
-        return emptyMap()
+        val labelsSortedByKeyAndIndex = labels.entries
+            .map { it.key.split("_") to it.value }
+            .map { (IndexedLabelKey(it.first[0], it.first.getOrElse(1) { "0" }.toInt())) to it.second }
+            .sortedWith(compareBy({ it.first.key }, { it.first.index }))
+
+        val map = HashMap<String, String>()
+
+        labelsSortedByKeyAndIndex.forEach {
+            if (map[it.first.key] == null) {
+                map[it.first.key] = it.second
+            } else {
+                map[it.first.key] = "${map[it.first.key]}${it.second}"
+            }
+        }
+
+        return map
     }
 
     private fun safeStore(key: String, value: String) {
@@ -57,10 +69,10 @@ class HetznerLabels(hetznerLabels: Map<String, String> = HashMap()) {
 
         if (value.length >= MAX_VALUE_LENGTH) {
             value.chunked(MAX_VALUE_LENGTH).forEachIndexed { index, s ->
-                this.labels["key_${index}"] = s
+                this.labels["${namespace}/${key}_${index}"] = s
             }
         } else {
-            this.labels[key] = value
+            this.labels["${namespace}/${key}"] = value
         }
     }
 
