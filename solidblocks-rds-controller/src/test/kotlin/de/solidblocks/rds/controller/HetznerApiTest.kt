@@ -53,8 +53,8 @@ class HetznerApiTest {
         assertThat(hetznerApi.ensureVolume("server1-volume1")).isTrue
         assertThat(hetznerApi.ensureSSHKey("server1-sshkey1", "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM30a1OCQaueS/4U0IKOXs0Z9cozuz+04lPDlZCf8nLS pelle@fry")).isTrue
 
-        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "server1-sshkey1")).isTrue
-        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "server1-sshkey1")).isTrue
+        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "","server1-sshkey1")).isTrue
+        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "", "server1-sshkey1")).isTrue
         assertThat(hetznerApi.hasServer("server1")).isTrue
         assertThat(hetznerApi.deleteServer("server1")).isTrue
         assertThat(hetznerApi.hasServer("server1")).isFalse

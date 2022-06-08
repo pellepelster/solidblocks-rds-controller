@@ -7,7 +7,6 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 
 class ConfigTemplatesTest {
-
     @Test
     fun testPgHbaConf(@TempDir tempDir: Path) {
         ConfigTemplates().pgHbaConf(tempDir, "user1")

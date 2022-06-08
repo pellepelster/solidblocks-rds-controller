@@ -1,3 +1,0 @@
-package_check_and_install "curl"
-
-bootstrap_solidblocks

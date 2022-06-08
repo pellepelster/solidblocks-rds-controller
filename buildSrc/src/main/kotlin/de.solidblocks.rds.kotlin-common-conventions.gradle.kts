@@ -2,6 +2,7 @@ import Versions.junitJupiterVersion
 import Versions.testContainersVersion
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jlleitschuh.gradle.ktlint.KtlintExtension
 import org.jlleitschuh.gradle.ktlint.reporter.ReporterType
 
 plugins {
@@ -16,13 +17,6 @@ repositories {
 
 val versionFile = File("$rootDir/version.txt")
 version = System.getenv("SOLIDBLOCKS_VERSION") ?: versionFile.readText().trim()
-
-tasks.jar {
-    manifest {
-        attributes["Commit"] = versioning.info.commit
-        attributes["Solidblocks-Version"] = version
-    }
-}
 
 dependencies {
     constraints {
@@ -50,6 +44,7 @@ tasks.test {
     useJUnitPlatform()
 
     testLogging {
+        this.showStandardStreams = true
         events = setOf(
             TestLogEvent.PASSED,
             TestLogEvent.SKIPPED,
@@ -60,7 +55,6 @@ tasks.test {
     }
 }
 
-
 tasks.jar {
     manifest {
         attributes["Commit"] = versioning.info.commit
@@ -68,7 +62,7 @@ tasks.jar {
     }
 }
 
-configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+configure<KtlintExtension> {
     outputToConsole.set(true)
     outputColorName.set("RED")
     disabledRules.set(listOf("no-wildcard-imports", "redundant-curly-braces"))
@@ -82,7 +76,7 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
     }
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+tasks.withType<KotlinCompile> {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_16.toString()
         targetCompatibility = JavaVersion.VERSION_16.toString()

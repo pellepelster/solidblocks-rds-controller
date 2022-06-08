@@ -31,7 +31,7 @@ class AgentWrapperProcess(solidblocksDirectory: Path) {
                 printStream = true,
                 environment = mapOf("SOLIDBLOCKS_DIR" to solidblocksDirectory.toString()),
                 workingDir = File(workingDir),
-                command = listOf("$workingDir/../solidblocks-cloud-init/src/bin/solidblocks-agent-wrapper.sh").toTypedArray()
+                command = listOf("$workingDir/../solidblocks-cloud-init/assets/bin/solidblocks-agent-wrapper.sh").toTypedArray()
             )
 
             logger.info { "service wrapper exited with ${result.code}" }
