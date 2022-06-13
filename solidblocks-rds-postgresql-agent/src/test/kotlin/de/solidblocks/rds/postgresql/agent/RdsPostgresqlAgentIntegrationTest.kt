@@ -3,6 +3,7 @@ package de.solidblocks.rds.postgresql.agent
 import de.solidblocks.rds.agent.BaseAgentApiClient
 import de.solidblocks.rds.agent.LinuxCommandExecutor
 import de.solidblocks.rds.base.Utils
+import de.solidblocks.rds.shared.SharedConstants
 import mu.KotlinLogging
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.*
@@ -31,7 +32,7 @@ class AgentWrapperProcess(solidblocksDirectory: Path) {
                 printStream = true,
                 environment = mapOf("SOLIDBLOCKS_DIR" to solidblocksDirectory.toString()),
                 workingDir = File(workingDir),
-                command = listOf("$workingDir/../solidblocks-cloud-init/assets/bin/solidblocks-agent-wrapper.sh").toTypedArray()
+                command = listOf("$workingDir/../solidblocks-rds-cloud-init/assets/bin/solidblocks-agent-wrapper.sh").toTypedArray()
             )
 
             logger.info { "service wrapper exited with ${result.code}" }
@@ -74,7 +75,9 @@ class RdsAgentIntegrationTest {
             KDockerComposeContainer(File("src/test/resources/rds-postgresql-agent/docker-compose.yml")).apply {
                 withBuild(true).withEnv(
                     mapOf(
-                        "SOLIDBLOCKS_BLUE_VERSION" to blueVersion, "SOLIDBLOCKS_GREEN_VERSION" to greenVersion
+                        "SOLIDBLOCKS_BLUE_VERSION" to blueVersion,
+                        "SOLIDBLOCKS_GREEN_VERSION" to greenVersion,
+                        "GITHUB_USERNAME" to SharedConstants.githubUsername
                     )
                 )
                 withExposedService("bootstrap", 80)
@@ -82,11 +85,7 @@ class RdsAgentIntegrationTest {
         dockerEnvironment.start()
 
         val solidblocksDirectory = createSolidblocksDirectory(
-            blueVersion,
-            clientCa.publicKey,
-            serverKeyPair.privateKey,
-            serverKeyPair.publicKey,
-            dockerEnvironment
+            blueVersion, clientCa.publicKey, serverKeyPair.privateKey, serverKeyPair.publicKey, dockerEnvironment
         )
 
         agentWrapperProcess = AgentWrapperProcess(solidblocksDirectory)
@@ -116,7 +115,9 @@ class RdsAgentIntegrationTest {
             KDockerComposeContainer(File("src/test/resources/rds-postgresql-agent/docker-compose.yml")).apply {
                 withBuild(true).withEnv(
                     mapOf(
-                        "SOLIDBLOCKS_BLUE_VERSION" to blueVersion, "SOLIDBLOCKS_GREEN_VERSION" to greenVersion
+                        "SOLIDBLOCKS_BLUE_VERSION" to blueVersion,
+                        "SOLIDBLOCKS_GREEN_VERSION" to greenVersion,
+                        "GITHUB_USERNAME" to SharedConstants.githubUsername
                     )
                 )
                 withExposedService("bootstrap", 80)
@@ -124,11 +125,7 @@ class RdsAgentIntegrationTest {
         dockerEnvironment.start()
 
         val solidblocksDirectory = createSolidblocksDirectory(
-            blueVersion,
-            clientCa.publicKey,
-            serverKeyPair.privateKey,
-            serverKeyPair.publicKey,
-            dockerEnvironment
+            blueVersion, clientCa.publicKey, serverKeyPair.privateKey, serverKeyPair.publicKey, dockerEnvironment
         )
 
         agentWrapperProcess = AgentWrapperProcess(solidblocksDirectory)
@@ -183,7 +180,7 @@ class RdsAgentIntegrationTest {
         instanceEnvironmentFile.writeText(
             """
             SOLIDBLOCKS_VERSION=$solidblocksVersion
-            GITHUB_USERNAME=pellepelster
+            GITHUB_USERNAME=${SharedConstants.githubUsername}
             SOLIDBLOCKS_BOOTSTRAP_ADDRESS=http://localhost:${dockerEnvironment.getServicePort("bootstrap", 80)}
             """.trimIndent()
         )

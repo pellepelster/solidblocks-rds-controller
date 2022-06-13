@@ -7,6 +7,8 @@ plugins {
 dependencies {
     implementation(project(":solidblocks-rds-shared"))
     implementation("org.reflections:reflections:0.10.2")
+
+    testImplementation("com.github.tomakehurst:wiremock:2.27.2")
 }
 
 sourceSets {
@@ -29,7 +31,8 @@ abstract class GenerateTask @Inject constructor(@get:Input val projectLayout: Pr
         File("${projectLayout.projectDirectory}/src/main/resources/templates-generated/$target").writeText(
             fileContents.joinToString(
                 "\n"
-            ), Charsets.UTF_8
+            ),
+            Charsets.UTF_8
         )
     }
 

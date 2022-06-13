@@ -64,15 +64,15 @@ class HetznerLabels(private val namespace: String, hetznerLabels: Map<String, St
         }
 
         if (value.length > MAX_TOTAL_VALUE_LENGTH) {
-            throw RuntimeException("labels values longer than ${MAX_TOTAL_VALUE_LENGTH} are not supported")
+            throw RuntimeException("labels values longer than $MAX_TOTAL_VALUE_LENGTH are not supported")
         }
 
         if (value.length >= MAX_VALUE_LENGTH) {
             value.chunked(MAX_VALUE_LENGTH).forEachIndexed { index, s ->
-                this.labels["${namespace}/${key}_${index}"] = s
+                this.labels["$namespace/${key}_$index"] = s
             }
         } else {
-            this.labels["${namespace}/${key}"] = value
+            this.labels["$namespace/$key"] = value
         }
     }
 

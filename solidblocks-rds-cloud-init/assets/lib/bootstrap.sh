@@ -25,9 +25,11 @@ function bootstrap_solidblocks() {
       local temp_file="$(mktemp)"
 
       #TODO verify checksum
-      curl_wrapper -L \
-        "https://maven.pkg.github.com/${GITHUB_USERNAME}/solidblocks/solidblocks/solidblocks-cloud-init/${SOLIDBLOCKS_VERSION}/solidblocks-cloud-init-${SOLIDBLOCKS_VERSION}.jar" > "${temp_file}"
+      # solidblocks-rds-cloud-init-SNAPSHOT-20220613183343-assets.jar
+      # https://maven.pkg.github.com/pellepelster/solidblocks-rds/solidblocks-rds/solidblocks-rds-cloud-init/SNAPSHOT-20220613183343/solidblocks-rds-cloud-init-SNAPSHOT-20220613183343-assets.jar
 
+      curl_wrapper -L \
+        "${REPOSITORY_BASE_ADDRESS:-https://maven.pkg.github.com}/${GITHUB_USERNAME}/solidblocks-rds/solidblocks-rds/solidblocks-rds-cloud-init/${SOLIDBLOCKS_VERSION}/solidblocks-rds-cloud-init-${SOLIDBLOCKS_VERSION}-assets.jar" > "${temp_file}"
       cd "${SOLIDBLOCKS_DIR}" || exit 1
       unzip "${temp_file}"
       rm -rf "${temp_file}"

@@ -9,7 +9,7 @@ class CloudInitTemplatesTest {
 
     @Test
     fun testSolidblocksRdsCloudInit(@TempDir tempDir: Path) {
-        CloudInitTemplates().solidblocksRdsCloudInit(tempDir, "version123", "/dev/disk/abc", "host124")
+        CloudInitTemplates.solidblocksRdsCloudInit(tempDir.resolve("solidblocks-rds-cloud-init.sh"), "version123", "/dev/disk/abc", "host124")
         assertThat(tempDir.resolve("solidblocks-rds-cloud-init.sh")).exists()
     }
 }

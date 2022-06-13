@@ -1,12 +1,11 @@
 package de.solidblocks.rds.postgresql.docker
 
 import de.solidblocks.rds.agent.initWorldReadableTempDir
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.*
 
 class PostgresqlTest {
-
     @Test
     fun startsWithDefaultConfig() {
 
@@ -21,7 +20,7 @@ class PostgresqlTest {
             backupDir = backupDir.toPath()
         )
 
-        Assertions.assertThat(instance.start()).isTrue
-        Assertions.assertThat(instance.stop()).isTrue
+        assertThat(instance.start()).isTrue
+        assertThat(instance.stop()).isTrue
     }
 }

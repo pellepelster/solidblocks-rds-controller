@@ -2,7 +2,6 @@ package de.solidblocks.rds.controller
 
 import de.solidblocks.rds.controller.providers.HetznerApi
 import me.tomsdevsn.hetznercloud.HetznerCloudAPI
-import me.tomsdevsn.hetznercloud.objects.request.ServerRequest
 import mu.KotlinLogging
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
@@ -51,5 +50,4 @@ class RdsComputeinstanceTest {
         assertThat(hetznerApi.deleteServer("server1")).isTrue
         assertThat(hetznerApi.hasServer("server1")).isFalse
     }
-
 }

@@ -8,7 +8,11 @@ class ConfigTemplates {
     fun pgbackrestConf(configTemplatesDir: Path, database: String, dataDir: Path, backupDir: Path) {
         Templates.writeTemplate(
             "config/templates/pgbackrest.conf.ftl", configTemplatesDir.resolve("pgbackrest.conf"),
-            mapOf("DB_DATABASE" to database, "DATA_DIR" to dataDir.toString(), "BACKUP_DIR" to backupDir.toString())
+            mapOf(
+                "DB_DATABASE" to database,
+                "DATA_DIR" to dataDir.toString(),
+                "BACKUP_DIR" to backupDir.toString()
+            )
         )
     }
 
@@ -19,10 +23,12 @@ class ConfigTemplates {
         )
     }
 
-    fun postgresqlConf(configTemplatesDir: Path) {
+    fun postgresqlConf(configTemplatesDir: Path, database: String) {
         Templates.writeTemplate(
             "config/templates/postgresql.conf.ftl", configTemplatesDir.resolve("postgresql.conf"),
-            mapOf()
+            mapOf(
+                "DB_DATABASE" to database
+            )
         )
     }
 }

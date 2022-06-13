@@ -18,7 +18,7 @@ class PostgresqlDockerInstance(
     private val password: String = "password1"
 ) {
 
-    val configTemplatesDir = createTempDirectory(
+    private val configTemplatesDir = createTempDirectory(
         id.toString(),
         PosixFilePermissions.asFileAttribute(
             EnumSet.of(OTHERS_READ, OTHERS_EXECUTE, OWNER_WRITE, OWNER_READ, OWNER_EXECUTE)
@@ -45,7 +45,7 @@ class PostgresqlDockerInstance(
     fun start(): Boolean {
         ConfigTemplates().pgHbaConf(configTemplatesDir, username)
         ConfigTemplates().pgbackrestConf(configTemplatesDir, database, dataDir, backupDir)
-        ConfigTemplates().postgresqlConf(configTemplatesDir)
+        ConfigTemplates().postgresqlConf(configTemplatesDir, database)
 
         return dockerManager.start()
     }

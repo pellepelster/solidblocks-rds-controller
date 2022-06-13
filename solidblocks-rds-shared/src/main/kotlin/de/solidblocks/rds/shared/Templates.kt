@@ -35,7 +35,6 @@ class Templates {
 
             val template = cfg.getTemplate(templateFile)
 
-
             // val consoleWriter: Writer = OutputStreamWriter(System.out)
             // template.process(variables, consoleWriter)
 
@@ -46,7 +45,8 @@ class Templates {
             }
 
             // TODO: do not set world readable when not run in test
-            Files.setPosixFilePermissions(output, PosixFilePermissions.fromString("r--r--r--"))
+            // TODO: also check x bits for all calls
+            Files.setPosixFilePermissions(output, PosixFilePermissions.fromString("r-xr-xr-x"))
         }
     }
 }
