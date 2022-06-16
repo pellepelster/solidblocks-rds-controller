@@ -2,6 +2,7 @@ import Versions.vertX
 
 plugins {
     id("de.solidblocks.rds.kotlin-application-conventions")
+    id("de.solidblocks.rds.kotlin-common-conventions")
     id("de.solidblocks.rds.kotlin-publish-conventions")
     id("com.palantir.docker") version "0.33.0"
 }

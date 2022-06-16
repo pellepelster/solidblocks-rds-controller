@@ -13,11 +13,11 @@ object HealthChecks {
     fun checkPort(address: InetSocketAddress) = try {
         Socket().use { socket ->
             socket.connect(address, 1000)
-            logger.info { "port ${address.hostName}:${address.port} is listening" }
+            logger.info { "${address.hostName}:${address.port} is listening" }
             true
         }
     } catch (e: IOException) {
-        logger.warn { "port ${address.hostName}:${address.port} is not listening" }
+        logger.warn { "waiting for '${address.hostName}:${address.port}'" }
         false
     }
 

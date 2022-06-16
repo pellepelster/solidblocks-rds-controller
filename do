@@ -23,8 +23,8 @@ function task_publish() {
 }
 
 function task_test() {
-  task_prepare_agent_integration_test
-  "${DIR}/gradlew" check
+  task_prepare_integration_test
+  HCLOUD_TOKEN=$(pass solidblocks-rds/hetzner/test/api-token) "${DIR}/gradlew" check
 }
 
 function task_prepare_integration_test() {

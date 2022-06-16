@@ -1,0 +1,15 @@
+[Unit]
+Description=solidblocks-agent
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+EnvironmentFile=-/solidblocks/instance/environment
+EnvironmentFile=-/solidblocks/protected/environment
+Restart=always
+RestartSec=5
+ExecStart=/solidblocks/bin/solidblocks-agent-wrapper.sh
+KillSignal=SIGINT
+
+[Install]
+WantedBy=multi-user.target

@@ -21,14 +21,19 @@ function bootstrap_solidblocks() {
   echo "SOLIDBLOCKS_HOSTNAME=${SOLIDBLOCKS_HOSTNAME}" >> "${SOLIDBLOCKS_DIR}/instance/environment"
   echo "SOLIDBLOCKS_VERSION=${SOLIDBLOCKS_VERSION}" >> "${SOLIDBLOCKS_DIR}/instance/environment"
 
+  echo "GITHUB_PAT=${GITHUB_PAT}" > "${SOLIDBLOCKS_DIR}/protected/environment"
+  echo "GITHUB_USERNAME=${GITHUB_USERNAME}" >> "${SOLIDBLOCKS_DIR}/protected/environment"
+
+  echo "${SOLIDBLOCKS_CLIENT_CA_PUBLIC_KEY}" | base64 -d > "${SOLIDBLOCKS_DIR}/protected/solidblocks_client_ca_public_key.crt"
+  echo "${SOLIDBLOCKS_SERVER_PRIVATE_KEY}" | base64 -d > "${SOLIDBLOCKS_DIR}/protected/solidblocks_server_private_key.key"
+  echo "${SOLIDBLOCKS_SERVER_PUBLIC_KEY}" | base64 -d > "${SOLIDBLOCKS_DIR}/protected/solidblocks_server_public_key.crt"
+
   (
       local temp_file="$(mktemp)"
 
       #TODO verify checksum
-      # solidblocks-rds-cloud-init-SNAPSHOT-20220613183343-assets.jar
-      # https://maven.pkg.github.com/pellepelster/solidblocks-rds/solidblocks-rds/solidblocks-rds-cloud-init/SNAPSHOT-20220613183343/solidblocks-rds-cloud-init-SNAPSHOT-20220613183343-assets.jar
-
-      curl_wrapper -L \
+      curl_wrapper \
+        -u "${GITHUB_USERNAME}:${GITHUB_PAT}" \
         "${REPOSITORY_BASE_ADDRESS:-https://maven.pkg.github.com}/${GITHUB_USERNAME}/solidblocks-rds/solidblocks-rds/solidblocks-rds-cloud-init/${SOLIDBLOCKS_VERSION}/solidblocks-rds-cloud-init-${SOLIDBLOCKS_VERSION}-assets.jar" > "${temp_file}"
       cd "${SOLIDBLOCKS_DIR}" || exit 1
       unzip "${temp_file}"

@@ -3,7 +3,7 @@ version: '3.5'
 services:
 
   test:
-    image: debian:10
+    image: debian:11
     command: /bin/bash -c "/test.sh; sleep 999999"
     environment:
       - GITHUB_USERNAME=${GITHUB_USERNAME}

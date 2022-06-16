@@ -1,15 +1,25 @@
 package de.solidblocks.rds.controller
 
+import de.solidblocks.rds.agent.MtlsHttpClient
+import de.solidblocks.rds.base.Utils
+import de.solidblocks.rds.cloudinit.CloudInitTemplates.Companion.solidblocksRdsCloudInit
 import de.solidblocks.rds.controller.providers.HetznerApi
+import de.solidblocks.rds.docker.HealthChecks
+import de.solidblocks.rds.shared.SharedConstants
+import de.solidblocks.rds.shared.VersionResponse
+import de.solidblocks.rds.shared.solidblocksVersion
 import me.tomsdevsn.hetznercloud.HetznerCloudAPI
 import me.tomsdevsn.hetznercloud.objects.request.ServerRequest
 import mu.KotlinLogging
 import org.assertj.core.api.Assertions.assertThat
+import org.awaitility.Awaitility.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
+import java.net.InetSocketAddress
+import java.time.Duration.ofSeconds
 
 @EnabledIfEnvironmentVariable(named = "HCLOUD_TOKEN", matches = ".*")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -48,13 +58,65 @@ class HetznerApiTest {
     }
 
     @Test
+    fun testServer() {
+
+        val serverNme = "server1"
+        hetznerApi.ensureVolume("${serverNme}-volume1")
+        hetznerApi.ensureSSHKey(
+            "${serverNme}-sshkey1",
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBcyA+qHj+8AZx6GC02cl+K/oCBK/dbG7Wb1QFW+iHh3 pelle@pelle.io"
+        )
+
+        val serverCa = Utils.generateCAKeyPAir()
+        val serverKeyPair = Utils.createCertificate(serverCa.privateKey, serverCa.publicKey)
+
+        val clientCa = Utils.generateCAKeyPAir()
+        val clientKeyPair = Utils.createCertificate(clientCa.privateKey, clientCa.publicKey)
+
+
+        val cloudInit = solidblocksRdsCloudInit(
+            solidblocksVersion(),
+            "tmp",
+            "$serverNme",
+            SharedConstants.githubUsername,
+            SharedConstants.githubPat,
+            clientCa.publicKey,
+            serverCa.privateKey,
+            serverCa.publicKey,
+            "solidblocks-rds-postgresql-agent"
+        )
+
+        val serverInfo = hetznerApi.ensureServer(serverNme, "${serverNme}-volume1", cloudInit, "${serverNme}-sshkey1")!!
+
+        await().pollInterval(ofSeconds(5)).atMost(ofSeconds(120)).until {
+            HealthChecks.checkPort(InetSocketAddress(serverInfo.ipAddress, serverInfo.agentPort))
+        }
+
+        val client = MtlsHttpClient(
+            serverInfo.agentAddress,
+            serverCa.publicKey,
+            clientKeyPair.privateKey,
+            clientKeyPair.publicKey
+        )
+
+        val version = client.get<VersionResponse>("/v1/agent/version")
+        assertThat(version.code).isEqualTo(200)
+        assertThat(version.data!!.version).startsWith(solidblocksVersion())
+    }
+
+    @Test
     fun testCreateAndDeleteServer() {
         assertThat(hetznerApi.hasServer("server1")).isFalse
         assertThat(hetznerApi.ensureVolume("server1-volume1")).isTrue
-        assertThat(hetznerApi.ensureSSHKey("server1-sshkey1", "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM30a1OCQaueS/4U0IKOXs0Z9cozuz+04lPDlZCf8nLS pelle@fry")).isTrue
+        assertThat(
+            hetznerApi.ensureSSHKey(
+                "server1-sshkey1",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM30a1OCQaueS/4U0IKOXs0Z9cozuz+04lPDlZCf8nLS pelle@fry"
+            )
+        ).isTrue
 
-        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "", "server1-sshkey1")).isTrue
-        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "", "server1-sshkey1")).isTrue
+        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "", "server1-sshkey1")).isNotNull
+        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "", "server1-sshkey1")).isNotNull
         assertThat(hetznerApi.hasServer("server1")).isTrue
         assertThat(hetznerApi.deleteServer("server1")).isTrue
         assertThat(hetznerApi.hasServer("server1")).isFalse
@@ -66,7 +128,7 @@ class HetznerApiTest {
         val response = hetznerCloudAPI.createServer(
             ServerRequest.builder()
                 .location("nbg1")
-                .image("debian-10")
+                .image("debian-11")
                 .startAfterCreate(false)
                 .serverType("cx11")
                 .name("unamanged-server").build()
@@ -81,8 +143,18 @@ class HetznerApiTest {
     @Test
     fun testEnsureSSHKey() {
         assertThat(hetznerApi.hasSSHKey("sshkey1")).isFalse
-        assertThat(hetznerApi.ensureSSHKey("sshkey1", "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA/3SavT/xyorfoGGkLjkWcxsJBf4J4KQf7wqu7B7G18 pelle@fry")).isTrue
-        assertThat(hetznerApi.ensureSSHKey("sshkey1", "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA/3SavT/xyorfoGGkLjkWcxsJBf4J4KQf7wqu7B7G18 pelle@fry")).isTrue
+        assertThat(
+            hetznerApi.ensureSSHKey(
+                "sshkey1",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA/3SavT/xyorfoGGkLjkWcxsJBf4J4KQf7wqu7B7G18 pelle@fry"
+            )
+        ).isTrue
+        assertThat(
+            hetznerApi.ensureSSHKey(
+                "sshkey1",
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA/3SavT/xyorfoGGkLjkWcxsJBf4J4KQf7wqu7B7G18 pelle@fry"
+            )
+        ).isTrue
         assertThat(hetznerApi.hasSSHKey("sshkey1")).isTrue
     }
 }

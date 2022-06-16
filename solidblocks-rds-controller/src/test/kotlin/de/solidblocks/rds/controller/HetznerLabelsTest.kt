@@ -12,24 +12,24 @@ class HetznerLabelsTest {
     @Test
     fun testAddHashedLabel() {
 
-        val labels = HetznerLabels("namespace1")
+        val labels = HetznerLabels()
 
         assertThat(labels.labels()).isEmpty()
         labels.addHashedLabel("hash-test", "hallo welt")
-        assertThat(labels.labels()["namespace1/hash-test"]).isEqualTo("028fb9cd289c106642177d7bd4b6c5e107265b90f17f6b52a1cb0d7584264455")
+        assertThat(labels.labels()["hash-test"]).isEqualTo("028fb9cd289c106642177d7bd4b6c5e107265b90f17f6b52a1cb0d7584264455")
     }
 
     @Test
     fun testMaxLabelValue() {
-        val labels = HetznerLabels("namespace1")
+        val labels = HetznerLabels()
         labels.addLabel("label1", "A".repeat(124))
         assertThat(labels.labels()).hasSize(1)
-        assertThat(labels.labels()["namespace1/label1"]).isEqualTo("A".repeat(124))
+        assertThat(labels.labels()["label1"]).isEqualTo("A".repeat(124))
     }
 
     @Test
     fun testTooLongLabelValue() {
-        val labels = HetznerLabels("namespace1")
+        val labels = HetznerLabels()
 
         assertThrows(
             RuntimeException::class.java
@@ -40,7 +40,7 @@ class HetznerLabelsTest {
 
     @Test
     fun testUnderscoreInKey() {
-        val labels = HetznerLabels("namespace1")
+        val labels = HetznerLabels()
 
         assertThrows(
             RuntimeException::class.java

@@ -8,5 +8,6 @@ include(
     "solidblocks-rds-shared",
     "solidblocks-rds-controller-model",
     "solidblocks-rds-postgresql-agent",
+    "solidblocks-rds-postgresql-controller",
     "solidblocks-rds-cloud-init",
 )

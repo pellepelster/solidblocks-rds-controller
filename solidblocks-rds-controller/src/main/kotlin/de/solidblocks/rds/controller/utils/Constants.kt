@@ -10,9 +10,9 @@ object Constants {
 
     val labelNamespace: String = "solidblocks.de"
 
-    val managedByLabel: String = "managed"
+    val managedByLabel: String = "${labelNamespace}/managed"
 
-    val versionLabel: String = "version"
+    val versionLabel: String = "${labelNamespace}/version"
 
-    val cloudInitChecksumLabel: String = "cloudInitChecksum"
+    val cloudInitChecksumLabel: String = "${labelNamespace}/cloudInitChecksum"
 }

@@ -4,6 +4,7 @@ import de.solidblocks.rds.agent.BaseAgentApiClient
 import de.solidblocks.rds.agent.LinuxCommandExecutor
 import de.solidblocks.rds.base.Utils
 import de.solidblocks.rds.shared.SharedConstants
+import de.solidblocks.rds.shared.SharedConstants.githubUsername
 import mu.KotlinLogging
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.*
@@ -20,17 +21,24 @@ import kotlin.concurrent.thread
 
 class KDockerComposeContainer(file: File) : DockerComposeContainer<KDockerComposeContainer>(file)
 
-class AgentWrapperProcess(solidblocksDirectory: Path) {
+class AgentWrapperProcess(solidblocksDirectory: Path, solidblocksVersion: String, solidblocksBootstrapAddress: String) {
     private val logger = KotlinLogging.logger {}
 
-    val commandExecutor: LinuxCommandExecutor = LinuxCommandExecutor()
-    val stopThread = AtomicBoolean(false)
-    var thread: Thread = thread {
+    private val commandExecutor: LinuxCommandExecutor = LinuxCommandExecutor()
+    private val stopThread = AtomicBoolean(false)
+    private var thread: Thread = thread {
         while (!stopThread.get()) {
             val workingDir = System.getProperty("user.dir")
             val result = commandExecutor.executeCommand(
                 printStream = true,
-                environment = mapOf("SOLIDBLOCKS_DIR" to solidblocksDirectory.toString()),
+                environment = mapOf(
+                    "SOLIDBLOCKS_DIR" to solidblocksDirectory.toString(),
+                    "SOLIDBLOCKS_AGENT" to "solidblocks-rds-postgresql-agent",
+                    "SOLIDBLOCKS_VERSION" to solidblocksVersion,
+                    "GITHUB_USERNAME" to githubUsername,
+                    "GITHUB_PAT" to SharedConstants.githubPat,
+                    "SOLIDBLOCKS_BOOTSTRAP_ADDRESS" to solidblocksBootstrapAddress
+                ),
                 workingDir = File(workingDir),
                 command = listOf("$workingDir/../solidblocks-rds-cloud-init/assets/bin/solidblocks-agent-wrapper.sh").toTypedArray()
             )
@@ -77,7 +85,7 @@ class RdsAgentIntegrationTest {
                     mapOf(
                         "SOLIDBLOCKS_BLUE_VERSION" to blueVersion,
                         "SOLIDBLOCKS_GREEN_VERSION" to greenVersion,
-                        "GITHUB_USERNAME" to SharedConstants.githubUsername
+                        "GITHUB_USERNAME" to githubUsername
                     )
                 )
                 withExposedService("bootstrap", 80)
@@ -88,7 +96,11 @@ class RdsAgentIntegrationTest {
             blueVersion, clientCa.publicKey, serverKeyPair.privateKey, serverKeyPair.publicKey, dockerEnvironment
         )
 
-        agentWrapperProcess = AgentWrapperProcess(solidblocksDirectory)
+        agentWrapperProcess = AgentWrapperProcess(
+            solidblocksDirectory,
+            blueVersion,
+            "http://localhost:${dockerEnvironment.getServicePort("bootstrap", 80)}"
+        )
 
         val client = BaseAgentApiClient(
             "https://localhost:8080", serverCa.publicKey, clientKeyPair.privateKey, clientKeyPair.publicKey
@@ -117,7 +129,7 @@ class RdsAgentIntegrationTest {
                     mapOf(
                         "SOLIDBLOCKS_BLUE_VERSION" to blueVersion,
                         "SOLIDBLOCKS_GREEN_VERSION" to greenVersion,
-                        "GITHUB_USERNAME" to SharedConstants.githubUsername
+                        "GITHUB_USERNAME" to githubUsername
                     )
                 )
                 withExposedService("bootstrap", 80)
@@ -128,7 +140,7 @@ class RdsAgentIntegrationTest {
             blueVersion, clientCa.publicKey, serverKeyPair.privateKey, serverKeyPair.publicKey, dockerEnvironment
         )
 
-        agentWrapperProcess = AgentWrapperProcess(solidblocksDirectory)
+        agentWrapperProcess = AgentWrapperProcess(solidblocksDirectory, blueVersion, "http://localhost:${dockerEnvironment.getServicePort("bootstrap", 80)}")
 
         val client = BaseAgentApiClient(
             "https://localhost:8080", serverCa.publicKey, clientKeyPair.privateKey, clientKeyPair.publicKey
@@ -159,13 +171,6 @@ class RdsAgentIntegrationTest {
         val protectedDir = File(solidblocksDir.toFile(), "protected")
         protectedDir.mkdirs()
 
-        val initialEnvironmentFile = File(protectedDir, "environment")
-        initialEnvironmentFile.writeText(
-            """
-            """.trimIndent()
-        )
-        logger.info { "created initial environment file: '$initialEnvironmentFile'" }
-
         File(protectedDir, "solidblocks_client_ca_public_key.crt").writeText(solidblocksClientCaPublicKey)
         File(protectedDir, "solidblocks_server_private_key.key").writeText(solidblocksServerPrivateKey)
         File(protectedDir, "solidblocks_server_public_key.crt").writeText(solidblocksServerPublicKey)
@@ -179,9 +184,6 @@ class RdsAgentIntegrationTest {
         val instanceEnvironmentFile = File(instanceDir, "environment")
         instanceEnvironmentFile.writeText(
             """
-            SOLIDBLOCKS_VERSION=$solidblocksVersion
-            GITHUB_USERNAME=${SharedConstants.githubUsername}
-            SOLIDBLOCKS_BOOTSTRAP_ADDRESS=http://localhost:${dockerEnvironment.getServicePort("bootstrap", 80)}
             """.trimIndent()
         )
 

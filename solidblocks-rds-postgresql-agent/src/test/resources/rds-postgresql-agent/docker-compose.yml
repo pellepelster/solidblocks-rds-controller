@@ -11,11 +11,3 @@ services:
         - GITHUB_USERNAME=${GITHUB_USERNAME}
     ports:
       - "80"
-    networks:
-      solidblocks-dev:
-        aliases:
-          - maven.pkg.github.com
-
-networks:
-  solidblocks-dev:
-    name: solidblocks-dev

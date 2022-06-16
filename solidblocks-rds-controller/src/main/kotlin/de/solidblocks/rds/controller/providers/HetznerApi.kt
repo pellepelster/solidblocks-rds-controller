@@ -140,18 +140,23 @@ class HetznerApi(apiToken: String) {
         return waitForServerAction(server, response.action)
     }
 
-    fun ensureServer(serverName: String, volumeName: String, userData: String, sshKeyName: String): Boolean {
+    data class ServerInfo(val ipAddress: String, val agentPort: Int) {
+        val agentAddress: String
+            get() = "https://${ipAddress}:${agentPort}"
+    }
+
+    fun ensureServer(serverName: String, volumeName: String, userData: String, sshKeyName: String): ServerInfo? {
 
         val volume = getVolume(volumeName)
         if (volume == null) {
             logger.error { "volume '$volumeName' not found" }
-            return false
+            return null
         }
 
         val sshKey = getSSHKey(sshKeyName)
         if (sshKey == null) {
             logger.error { "ssh key '$sshKeyName' not found" }
-            return false
+            return null
         }
 
         val additionalSSHKeys = hetznerCloudAPI.sshKeys.sshKeys.filter { it.id == sshKey.id }
@@ -161,7 +166,7 @@ class HetznerApi(apiToken: String) {
         if (server == null) {
             logger.info { "creating server '$serverName'" }
 
-            val labels = HetznerLabels(labelNamespace)
+            val labels = HetznerLabels()
             labels.addLabel(managedByLabel, "true")
             labels.addLabel(versionLabel, solidblocksVersion())
             labels.addLabel(cloudInitChecksumLabel, solidblocksVersion())
@@ -169,7 +174,7 @@ class HetznerApi(apiToken: String) {
             val response = hetznerCloudAPI.createServer(
                 ServerRequest.builder()
                     .location("nbg1")
-                    .image("debian-10")
+                    .image("debian-11")
                     .sshKey(sshKey.name)
                     .sshKeys(additionalSSHKeys.map { it.name })
                     .userData(userData)
@@ -185,16 +190,41 @@ class HetznerApi(apiToken: String) {
 
         if (server == null) {
             logger.error { "failed to ensure server '$serverName'" }
-            return false
+            return null
         }
 
+        /*
         if (server.volumes.any { it == volume.id }) {
             return true
         }
+        */
 
-        val response =
-            hetznerCloudAPI.attachVolumeToServer(volume.id, AttachVolumeRequest.builder().serverID(server.id).build())
-        return waitForServerAction(server, response.action)
+        if (server.volumes.none { it == volume.id }) {
+            val response =
+                hetznerCloudAPI.attachVolumeToServer(
+                    volume.id,
+                    AttachVolumeRequest.builder().serverID(server.id).build()
+                )
+            if (!waitForServerAction(server, response.action)) {
+                logger.error { "attaching volume to server failed for server '$serverName' and volume '${volume.name}'" }
+                return null
+            }
+
+            if (!waitForServerAction(server, hetznerCloudAPI.powerOnServer(server.id).action)) {
+                logger.error { "powering up server '$serverName' failed" }
+                return null
+            }
+        }
+
+        val ipAddress = server.publicNet?.ipv4?.ip
+        if (ipAddress == null) {
+            logger.error { "could not determine ip address for server '$serverName'" }
+            return null
+        }
+
+        logger.info { "server '$serverName' is up and running, ip is '${ipAddress}'" }
+
+        return ServerInfo(ipAddress, 8080)
     }
 
     private fun Action.succesfull(): Boolean = this.finished != null && this.status == "success"

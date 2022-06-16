@@ -32,7 +32,6 @@ import java.util.*
 data class PrivateAndPublicKey(val privateKey: String, val publicKey: String)
 
 class Utils {
-
     companion object {
 
         private const val BC_PROVIDER = "BC"
@@ -57,20 +56,6 @@ class Utils {
             val privateKey = PemObject("OPENSSH PRIVATE KEY", content)
 
             return PrivateAndPublicKey(privateKey.toPemString(), publicKey)
-        }
-
-        fun generateKeyPair(): KeyPair {
-
-            // System.setProperty("org.bouncycastle.pkcs8.v1_info_only", "true")
-            Security.addProvider(BouncyCastleProvider())
-
-            val kpg = KeyPairGenerator.getInstance("RSA", "BC")
-
-            // val parameterSpec = EdDSAParameterSpec(EdDSAParameterSpec.Ed25519)
-            val parameterSpec = RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4)
-            kpg.initialize(parameterSpec, SecureRandom.getInstanceStrong())
-
-            return kpg.generateKeyPair()
         }
 
         fun generateCAKeyPAir(): PrivateAndPublicKey {
@@ -174,7 +159,7 @@ class Utils {
             // Use the Signed KeyPair and CSR to generate an issued Certificate
             // Here serial number is randomly generated. In general, CAs use
             // a sequence to generate Serial number and avoid collisions
-            val issuedCertBuilder: X509v3CertificateBuilder = X509v3CertificateBuilder(
+            val issuedCertBuilder = X509v3CertificateBuilder(
                 rootPublicKey.issuer, issuedCertSerialNum, startDate, endDate, csr.getSubject(), csr.getSubjectPublicKeyInfo()
             )
 
@@ -182,7 +167,6 @@ class Utils {
 
             // Add Extensions
             // Use BasicConstraints to say that this Cert is not a CA
-
             issuedCertBuilder.addExtension(Extension.basicConstraints, true, BasicConstraints(false))
 
             // Add Issuer cert identifier as Extension
@@ -234,8 +218,6 @@ class Utils {
         }
 
         private fun String.parsePublicKey(): X509CertificateHolder {
-            val converter = JcaPEMKeyConverter()
-
             StringReader(this).use { keyReader ->
                 PEMParser(keyReader).use { pemParser ->
                     return pemParser.readObject() as X509CertificateHolder

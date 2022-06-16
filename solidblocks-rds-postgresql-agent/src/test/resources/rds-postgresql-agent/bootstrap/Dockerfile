@@ -4,8 +4,8 @@ ARG SOLIDBLOCKS_GREEN_VERSION
 ARG SOLIDBLOCKS_BLUE_VERSION
 ARG GITHUB_USERNAME
 
-ARG BLUE_HTML_DIR="/etc/nginx/html/${GITHUB_USERNAME}/solidblocks/solidblocks/solidblocks-rds-postgresql-agent/${SOLIDBLOCKS_BLUE_VERSION}"
-ARG GREEN_HTML_DIR="/etc/nginx/html/${GITHUB_USERNAME}/solidblocks/solidblocks/solidblocks-rds-postgresql-agent/${SOLIDBLOCKS_GREEN_VERSION}"
+ARG BLUE_HTML_DIR="/etc/nginx/html/${GITHUB_USERNAME}/solidblocks-rds/solidblocks-rds/solidblocks-rds-postgresql-agent/${SOLIDBLOCKS_BLUE_VERSION}"
+ARG GREEN_HTML_DIR="/etc/nginx/html/${GITHUB_USERNAME}/solidblocks-rds/solidblocks-rds/solidblocks-rds-postgresql-agent/${SOLIDBLOCKS_GREEN_VERSION}"
 
 COPY nginx.conf /etc/nginx/nginx.conf
 

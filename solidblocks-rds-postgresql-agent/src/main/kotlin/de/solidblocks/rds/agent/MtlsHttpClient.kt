@@ -42,6 +42,10 @@ class MtlsHttpClient(
             sslFactory.trustManager.get()
         )
             .retryOnConnectionFailure(false)
+            .hostnameVerifier { hostName, sslSession ->
+                //TODO extend cert verification (certificate pinning?)
+                hostName == sslSession.peerHost
+            }
             .build()
     }
 
