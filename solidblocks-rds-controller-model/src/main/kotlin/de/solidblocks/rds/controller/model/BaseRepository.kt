@@ -17,6 +17,8 @@ abstract class BaseRepository(val dsl: DSLContext) {
 
     protected class RdsInstanceId(val id: UUID) : IdType(id)
 
+    protected class ControllerInstanceId(val id: UUID) : IdType(id)
+
     protected fun latestConfigurationValuesQuery(referenceColumn: TableField<ConfigurationValuesRecord, UUID?>): Table<Record5<UUID?, UUID?, String?, String?, Int?>> {
 
         val latestVersions = dsl.select(
@@ -47,15 +49,18 @@ abstract class BaseRepository(val dsl: DSLContext) {
 
         var providerId: UUID? = null
         var rdsInstanceId: UUID? = null
+        var controllerId: UUID? = null
 
         when (id) {
             is ProviderId -> providerId = id.id
             is RdsInstanceId -> rdsInstanceId = id.id
+            is ControllerInstanceId -> controllerId = id.id
         }
 
         val condition = when (id) {
             is ProviderId -> CONFIGURATION_VALUES.PROVIDER.eq(id.id)
             is RdsInstanceId -> CONFIGURATION_VALUES.RDS_INSTANCE.eq(id.id)
+            is ControllerInstanceId -> CONFIGURATION_VALUES.CONTROLLER.eq(id.id)
         }
 
         // unfortunately derby does not support limits .limit(1).offset(0)
@@ -68,13 +73,14 @@ abstract class BaseRepository(val dsl: DSLContext) {
             CONFIGURATION_VALUES.VERSION,
             CONFIGURATION_VALUES.PROVIDER,
             CONFIGURATION_VALUES.RDS_INSTANCE,
+            CONFIGURATION_VALUES.CONTROLLER,
             CONFIGURATION_VALUES.KEY_,
             CONFIGURATION_VALUES.VALUE_
         ).values(
             UUID.randomUUID(),
             current.firstOrNull()?.let { it.version!! + 1 }
                 ?: 0,
-            providerId, rdsInstanceId, key, value
+            providerId, rdsInstanceId, controllerId, key, value
         ).execute()
 
         return result == 1

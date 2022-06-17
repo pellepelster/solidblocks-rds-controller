@@ -1,7 +1,6 @@
 package de.solidblocks.rds.agent
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import de.solidblocks.agent.base.api.TriggerUpdateResponse
 import de.solidblocks.rds.agent.TriggerShutdownRequest.TRIGGER_SHUTDOWN_PATH
 import de.solidblocks.rds.agent.TriggerUpdateRequest.Companion.TRIGGER_UPDATE_PATH
 import de.solidblocks.rds.shared.AGENT_BASE_PATH

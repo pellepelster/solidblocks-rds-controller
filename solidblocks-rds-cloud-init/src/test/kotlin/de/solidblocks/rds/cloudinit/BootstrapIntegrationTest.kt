@@ -79,7 +79,7 @@ class BootstrapIntegrationTest {
                 )
         )
 
-        await().atMost(ofSeconds(30)).until {
+        await().atMost(ofSeconds(60)).until {
             val result =
                 compose.getContainerByServiceName("test_1").get().execInContainer("cat", "/solidblocks/file1.txt")
             result.stdout.contains(fileContent)

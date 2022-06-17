@@ -1,7 +1,8 @@
 import {Component, OnInit} from '@angular/core';
-import {ContextService} from "./context.service";
-import {BehaviorSubject} from "rxjs";
-import {ProviderResponse, RdsInstanceResponse} from "../../services/types";
+import {NavigationBreadcrumb, NavigationService} from "./navigation.service";
+import {ProviderResponse} from "../../services/types";
+import {ProvidersService} from "../../services/providers.service";
+
 
 @Component({
   selector: 'app-navigation',
@@ -9,15 +10,27 @@ import {ProviderResponse, RdsInstanceResponse} from "../../services/types";
 })
 export class NavigationComponent implements OnInit {
 
-  currentProvider: BehaviorSubject<ProviderResponse | null>
-  currentRdsInstance: BehaviorSubject<RdsInstanceResponse | null>
+  breadcrumbs: NavigationBreadcrumb[] = []
 
-  constructor(private contextService: ContextService) {
+  currentProvider: ProviderResponse;
+
+  providers: ProviderResponse[];
+
+  constructor(public navigationService: NavigationService, private providersService: ProvidersService) {
   }
 
   ngOnInit(): void {
-    this.currentProvider = this.contextService.currentProvider
-    this.currentRdsInstance = this.contextService.currentRdsInstance
+    this.navigationService.breadcrumbs.subscribe((breadcrumbs) => {
+      this.breadcrumbs = breadcrumbs as NavigationBreadcrumb[]
+    })
+
+    this.navigationService.currentProvider.subscribe((provider) => {
+      this.currentProvider = provider as ProviderResponse
+    })
+
+    this.providersService.list().subscribe((providers) => {
+      this.providers = providers.providers as ProviderResponse[]
+    })
   }
 
 }

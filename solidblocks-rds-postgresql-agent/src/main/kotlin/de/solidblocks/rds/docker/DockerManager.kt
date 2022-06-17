@@ -48,7 +48,7 @@ class DockerManager(
         )
     }
 
-    fun existsImage(imageName: String): Boolean = try {
+    fun imageExists(imageName: String): Boolean = try {
         dockerClient.inspectImageCmd(imageName).exec()
         true
     } catch (e: NotFoundException) {
@@ -58,7 +58,7 @@ class DockerManager(
     fun start(): Boolean {
         logger.info { "starting docker image '$dockerImage'" }
 
-        if (!existsImage(dockerImage)) {
+        if (!imageExists(dockerImage)) {
             try {
                 val pullResult = dockerClient.pullImageCmd(dockerImage).start().awaitCompletion(5, TimeUnit.MINUTES)
                 if (!pullResult) {
@@ -79,8 +79,10 @@ class DockerManager(
             hostConfig.withNetworkMode(network)
         }
 
-        val result = dockerClient.createContainerCmd(dockerImage).withExposedPorts(ports.map { ExposedPort(it) })
-            .withEnv(environment.map { "${it.key}=${it.value}" }).withLabels(mapOf(SERVICE_ID_KEY to id))
+        val result = dockerClient.createContainerCmd(dockerImage)
+            .withExposedPorts(ports.map { ExposedPort(it) })
+            .withEnv(environment.map { "${it.key}=${it.value}" })
+            .withLabels(mapOf(SERVICE_ID_KEY to id))
             .withHostConfig(hostConfig).exec()
 
         dockerClient.startContainerCmd(result.id).exec()

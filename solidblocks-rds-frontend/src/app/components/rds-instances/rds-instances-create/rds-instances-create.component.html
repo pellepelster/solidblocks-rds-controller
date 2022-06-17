@@ -8,10 +8,15 @@
 
           <ng-template rdsInstanceWizardSteps></ng-template>
 
-          <button type="button" class="btn btn-primary" [disabled]="!hasPreviousStep()" (click)="previousStep()">Back</button>
+          <button type="button" class="btn btn-primary" [disabled]="!hasPreviousStep()" (click)="previousStep()">Back
+          </button>
 
-          <button type="button" class="btn btn-primary" *ngIf="hasNextStep()" [disabled]="!currentStepValid()" (click)="nextStep()">Next</button>
-          <button type="button" class="btn btn-primary" *ngIf="!hasNextStep()" [disabled]="!currentStepValid()" (click)="finish()">Finish</button>
+          <button type="button" class="btn btn-primary" *ngIf="hasNextStep()" [disabled]="!currentStepValid()"
+                  (click)="nextStep()">Next
+          </button>
+          <button type="button" class="btn btn-primary" *ngIf="!hasNextStep()" [disabled]="!currentStepValid()"
+                  (click)="finish()">Finish
+          </button>
 
         </div>
       </div>

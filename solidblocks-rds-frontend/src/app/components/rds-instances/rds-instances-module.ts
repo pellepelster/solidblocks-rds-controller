@@ -4,9 +4,10 @@ import {ControlsModule} from "../controls/controls-module";
 import {ReactiveFormsModule} from "@angular/forms";
 import {RdsInstancesHomeComponent} from "./rds-instances-home/rds-instances-home.component";
 import {
-  RdsInstancesWizardStep1Component,
   ProviderWizardStepsDirective,
-  RdsInstancesCreateComponent, RdsInstancesWizardStep2Component
+  RdsInstancesCreateComponent,
+  RdsInstancesWizardStep1Component,
+  RdsInstancesWizardStep2Component
 } from "./rds-instances-create/rds-instances-create.component";
 import {RdsInstancesListItemComponent} from "./rds-instances-list-item.component";
 import {RdsInstancesRoutingModule} from "./rds-instances-routing-module";

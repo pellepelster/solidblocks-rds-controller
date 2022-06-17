@@ -7,20 +7,20 @@ import {RdsInstancesHomeComponent} from "./rds-instances-home/rds-instances-home
 
 const routes: Routes = [
   {
-    path: '',
+    path: 'xx',
     component: RdsInstancesComponent,
 
     children: [
       {
-        path: '',
+        path: 'xx',
         component: RdsInstancesHomeComponent,
       },
       {
-        path: 'create',
+        path: 'xxcreate',
         component: RdsInstancesCreateComponent,
       },
       {
-        path: ':rdsInstanceId',
+        path: 'xx:rdsInstanceId',
         component: RdsInstancesDetailsComponent,
       }
     ]

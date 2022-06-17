@@ -12,6 +12,7 @@ import {ToastsContainer} from "./utils/toasts.container";
 import {ControlsModule} from "./components/controls/controls-module";
 import {ProvidersModule} from "./components/providers/providers-module";
 import {RdsInstancesModule} from "./components/rds-instances/rds-instances-module";
+import {CommonModule} from "@angular/common";
 
 @NgModule({
   declarations: [
@@ -21,6 +22,7 @@ import {RdsInstancesModule} from "./components/rds-instances/rds-instances-modul
     ToastsContainer,
   ],
   imports: [
+    CommonModule,
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,

@@ -23,6 +23,6 @@ class ControllerCommand : CliktCommand() {
 
         logger.info { "controller started" }
 
-        val controllerManager = ControllerManager(database)
+        val controllerManager = Controller(database)
     }
 }

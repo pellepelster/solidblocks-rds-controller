@@ -22,15 +22,14 @@ interface ProvidersCreateStepComponent {
 @Component({
   selector: 'providers-wizard-step1',
   template: `
-    <div>
-      <ul class="list-group">
-        <li class="list-group-item" [class.active]="selectedProvider == providerType.id"
-            (click)="this.selectProvider(providerType.id)" *ngFor="let providerType of providerTypes">
-          <img src="assets/{{providerType.id}}.svg" width="64" alt="{{providerType.description}}">
-          {{providerType.description}}
-        </li>
-      </ul>
-    </div>
+    <p>Select the type of the provider to create</p>
+    <ul class="list-group">
+      <li class="list-group-item" [class.active]="selectedProvider == providerType.id"
+          (click)="this.selectProvider(providerType.id)" *ngFor="let providerType of providerTypes">
+        <img src="assets/{{providerType.id}}.svg" width="64" alt="{{providerType.description}}">
+        {{providerType.description}}
+      </li>
+    </ul>
   `
 })
 export class ProvidersWizardStep1Component implements ProvidersCreateStepComponent {
@@ -59,15 +58,14 @@ export class ProvidersWizardStep1Component implements ProvidersCreateStepCompone
 @Component({
   selector: 'providers-wizard-step2',
   template: `
-    <div>
-      <form [formGroup]="form" (ngSubmit)="finish()">
+    <p>Select the type of the provider to create</p>
+    <form [formGroup]="form" (ngSubmit)="finish()">
 
-        <input-control [form]="form" [messages]="messages" formControlName="name"></input-control>
-        <input-control [form]="form" [messages]="messages" formControlName="apiKey"></input-control>
+      <input-control [form]="form" [messages]="messages" formControlLabel="Name" formControlName="name"></input-control>
+      <input-control [form]="form" [messages]="messages" formControlLabel="API Token"
+                     formControlName="apiKey"></input-control>
 
-      </form>
-
-    </div>
+    </form>
   `
 })
 export class ProvidersWizardStep2Component extends BaseFormComponent implements ProvidersCreateStepComponent {

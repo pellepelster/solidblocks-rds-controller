@@ -4,15 +4,17 @@ import {ControlsModule} from "../controls/controls-module";
 import {ReactiveFormsModule} from "@angular/forms";
 import {ProvidersHomeComponent} from "./providers-home/providers-home.component";
 import {
+  ProvidersCreateComponent,
   ProvidersWizardStep1Component,
-  ProviderWizardStepsDirective,
-  ProvidersCreateComponent, ProvidersWizardStep2Component
+  ProvidersWizardStep2Component,
+  ProviderWizardStepsDirective
 } from "./providers-create/providers-create.component";
 import {ProvidersListItemComponent} from "./providers-list-item.component";
 import {ProvidersRoutingModule} from "./providers-routing-module";
 import {ProvidersComponent} from "./providers.component";
 import {ProvidersDetailsComponent} from "./providers-details/providers-details.component";
 import {RdsInstancesModule} from "../rds-instances/rds-instances-module";
+import {ProviderStatusColorPipe} from "./providers-details/provider-status-color.pipe";
 
 @NgModule({
   declarations: [
@@ -23,7 +25,8 @@ import {RdsInstancesModule} from "../rds-instances/rds-instances-module";
     ProvidersWizardStep1Component,
     ProvidersWizardStep2Component,
     ProvidersListItemComponent,
-    ProvidersComponent
+    ProvidersComponent,
+    ProviderStatusColorPipe
   ],
   exports: [],
   imports: [
@@ -31,7 +34,7 @@ import {RdsInstancesModule} from "../rds-instances/rds-instances-module";
     ControlsModule,
     ReactiveFormsModule,
     ProvidersRoutingModule,
-    RdsInstancesModule
+    RdsInstancesModule,
   ]
 })
 export class ProvidersModule {

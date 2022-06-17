@@ -14,7 +14,7 @@ import {MessageResponse} from "../../services/types";
   selector: 'input-control',
   template: `
     <div class="mb-4">
-      <label class="form-label" [for]="formControlName">{{formControlName}}</label>
+      <label class="form-label" [for]="formControlName">{{formControlLabel}}</label>
       <input
         [id]="formControlName"
         [disabled]="disabled"
@@ -52,7 +52,10 @@ import {MessageResponse} from "../../services/types";
 export class InputControlComponent implements ControlValueAccessor, Validator {
 
   @Input()
-  formControlName: string = "";
+  formControlName: string;
+
+  @Input()
+  formControlLabel: string;
 
   @Input()
   form: any;

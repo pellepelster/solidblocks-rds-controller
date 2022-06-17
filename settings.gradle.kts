@@ -1,4 +1,4 @@
-rootProject.name = "solidblocks-rds"
+rootProject.name = "solidblocks-rds-controller"
 
 include(
     "solidblocks-rds-backend-base",

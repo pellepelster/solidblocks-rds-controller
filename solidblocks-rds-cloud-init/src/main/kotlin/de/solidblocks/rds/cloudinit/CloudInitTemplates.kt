@@ -18,7 +18,8 @@ class CloudInitTemplates {
             solidblocksAgent: String
 
         ) = Templates.writeTemplate(
-            "solidblocks-rds-cloud-init.sh", variables = mapOf(
+            "solidblocks-rds-cloud-init.sh",
+            variables = mapOf(
                 "solidblocks_version" to solidblocksVersion,
                 "storage_local_device" to storageLocalDevice,
                 "solidblocks_hostname" to hostname,
@@ -28,7 +29,8 @@ class CloudInitTemplates {
                 "solidblocks_client_ca_public_key" to getEncoder().encodeToString(clientCAPublicKey.toByteArray()),
                 "solidblocks_server_private_key" to getEncoder().encodeToString(serverPrivateKey.toByteArray()),
                 "solidblocks_server_public_key" to getEncoder().encodeToString(serverPublicKey.toByteArray()),
-            ), basePackagePath = "/templates-generated"
+            ),
+            basePackagePath = "/templates-generated"
         )
     }
 }

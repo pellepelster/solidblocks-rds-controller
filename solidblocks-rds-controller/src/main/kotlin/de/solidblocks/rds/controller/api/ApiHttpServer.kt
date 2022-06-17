@@ -67,7 +67,7 @@ class ApiHttpServer(port: Int = 8080) {
 
         registerErrorHandlers()
 
-        logger.info { "starting cloud http api on on port $port" }
+        logger.info { "starting http api on on port $port" }
         listen = server.requestHandler(router).listen(port)
         /*
         {

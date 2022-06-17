@@ -4,7 +4,7 @@ import {RdsInstancesService} from "../../../services/rds-instances.service";
 import {BaseFormComponent} from "../../base-form.component";
 import {ToastService} from "../../../utils/toast.service";
 import {Router} from "@angular/router";
-import {ContextService} from "../../navigation/context.service";
+import {NavigationService} from "../../navigation/navigation.service";
 
 @Directive({
   selector: '[rdsInstanceWizardSteps]'
@@ -78,17 +78,13 @@ export class RdsInstancesWizardStep2Component extends BaseFormComponent implemen
     ])
   });
 
-  constructor(private contextService: ContextService, private rdsInstancesService: RdsInstancesService, private router: Router, toastService: ToastService) {
+  constructor(private navigationService: NavigationService, private rdsInstancesService: RdsInstancesService, private router: Router, toastService: ToastService) {
     super(toastService);
   }
 
   finish() {
 
-    if (!this.contextService.currentProviderId.value) {
-      return
-    }
-
-    const providerId = this.contextService.currentProviderId.value
+    /*
     this.rdsInstancesService.create(this.form.value.name, providerId).subscribe(
       (data) => {
         this.router.navigate(['providers', providerId, 'rds-instances', data.rdsInstance.id])
@@ -96,7 +92,7 @@ export class RdsInstancesWizardStep2Component extends BaseFormComponent implemen
       (error) => {
         this.handleErrorResponse(error)
       }
-    )
+    )*/
   }
 
   stepIsValid(): boolean {

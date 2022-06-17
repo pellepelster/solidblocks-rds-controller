@@ -4,8 +4,8 @@ import {BaseFormComponent} from "../../base-form.component";
 import {ToastService} from "../../../utils/toast.service";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Subscription} from "rxjs";
-import {ProviderResponse} from "../../../services/types";
-import {ContextService} from "../../navigation/context.service";
+import {ProviderResponse, RdsInstanceResponse} from "../../../services/types";
+import {NavigationBreadcrumb, NavigationService} from "../../navigation/navigation.service";
 import {RdsInstancesService} from "../../../services/rds-instances.service";
 
 @Component({
@@ -18,9 +18,9 @@ export class ProvidersDetailsComponent extends BaseFormComponent implements OnIn
 
   provider: ProviderResponse
 
-  rdsInstances: Array<ProviderResponse>
+  rdsInstances: Array<RdsInstanceResponse>
 
-  constructor(private contextService: ContextService,
+  constructor(private navigationService: NavigationService,
               private router: Router,
               private route: ActivatedRoute,
               private rdsInstancesService: RdsInstancesService,
@@ -30,12 +30,14 @@ export class ProvidersDetailsComponent extends BaseFormComponent implements OnIn
   }
 
   ngOnInit(): void {
+
     this.subscription = this.route.params.subscribe(
-      (next) => {
-        this.providersService.get(next['providerId']).subscribe(
-          (next) => {
-            this.provider = next.provider
-            this.contextService.nextProvider(next.provider)
+      (params) => {
+        this.providersService.get(params['providerId']).subscribe(
+          (data) => {
+            this.provider = data.provider
+            this.navigationService.push(new NavigationBreadcrumb(data.provider.name, data.provider.id))
+            this.navigationService.selectProvider(data.provider)
           },
           (error) => {
             this.toastsService.handleErrorResponse(error)
@@ -43,14 +45,14 @@ export class ProvidersDetailsComponent extends BaseFormComponent implements OnIn
         )
       })
 
-      this.rdsInstancesService.list().subscribe(
-        (response) => {
-          this.rdsInstances = response.rdsInstances
-        },
-        (error) => {
-          this.toastsService.handleErrorResponse(error)
-        }
-      )
+    this.rdsInstancesService.list().subscribe(
+      (response) => {
+        this.rdsInstances = response.rdsInstances
+      },
+      (error) => {
+        this.toastsService.handleErrorResponse(error)
+      }
+    )
   }
 
   delete(id: string) {

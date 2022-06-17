@@ -14,7 +14,6 @@ import org.bouncycastle.crypto.util.OpenSSHPrivateKeyUtil
 import org.bouncycastle.crypto.util.OpenSSHPublicKeyUtil
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openssl.PEMParser
-import org.bouncycastle.openssl.jcajce.JcaPEMKeyConverter
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder
@@ -26,7 +25,6 @@ import java.math.BigInteger
 import java.security.*
 import java.security.cert.X509Certificate
 import java.security.spec.PKCS8EncodedKeySpec
-import java.security.spec.RSAKeyGenParameterSpec
 import java.util.*
 
 data class PrivateAndPublicKey(val privateKey: String, val publicKey: String)

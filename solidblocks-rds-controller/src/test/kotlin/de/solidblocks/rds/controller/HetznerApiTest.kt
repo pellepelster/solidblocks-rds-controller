@@ -4,6 +4,7 @@ import de.solidblocks.rds.agent.MtlsHttpClient
 import de.solidblocks.rds.base.Utils
 import de.solidblocks.rds.cloudinit.CloudInitTemplates.Companion.solidblocksRdsCloudInit
 import de.solidblocks.rds.controller.providers.HetznerApi
+import de.solidblocks.rds.controller.utils.HetznerLabels
 import de.solidblocks.rds.docker.HealthChecks
 import de.solidblocks.rds.shared.SharedConstants
 import de.solidblocks.rds.shared.VersionResponse
@@ -52,18 +53,18 @@ class HetznerApiTest {
     @Test
     fun testEnsureVolume() {
         assertThat(hetznerApi.hasVolume("volume1")).isFalse
-        assertThat(hetznerApi.ensureVolume("volume1")).isTrue
-        assertThat(hetznerApi.ensureVolume("volume1")).isTrue
+        assertThat(hetznerApi.ensureVolume("volume1", HetznerLabels())).isTrue
+        assertThat(hetznerApi.ensureVolume("volume1", HetznerLabels())).isTrue
         assertThat(hetznerApi.hasVolume("volume1")).isTrue
     }
 
     @Test
-    fun testServer() {
+    fun testServerWorkflow() {
 
         val serverNme = "server1"
-        hetznerApi.ensureVolume("${serverNme}-volume1")
+        hetznerApi.ensureVolume("$serverNme-volume1", HetznerLabels())
         hetznerApi.ensureSSHKey(
-            "${serverNme}-sshkey1",
+            "$serverNme-sshkey1",
             "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBcyA+qHj+8AZx6GC02cl+K/oCBK/dbG7Wb1QFW+iHh3 pelle@pelle.io"
         )
 
@@ -72,7 +73,6 @@ class HetznerApiTest {
 
         val clientCa = Utils.generateCAKeyPAir()
         val clientKeyPair = Utils.createCertificate(clientCa.privateKey, clientCa.publicKey)
-
 
         val cloudInit = solidblocksRdsCloudInit(
             solidblocksVersion(),
@@ -86,7 +86,7 @@ class HetznerApiTest {
             "solidblocks-rds-postgresql-agent"
         )
 
-        val serverInfo = hetznerApi.ensureServer(serverNme, "${serverNme}-volume1", cloudInit, "${serverNme}-sshkey1")!!
+        val serverInfo = hetznerApi.ensureServer(serverNme, "$serverNme-volume1", cloudInit, "$serverNme-sshkey1", HetznerLabels())!!
 
         await().pollInterval(ofSeconds(5)).atMost(ofSeconds(120)).until {
             HealthChecks.checkPort(InetSocketAddress(serverInfo.ipAddress, serverInfo.agentPort))
@@ -107,7 +107,7 @@ class HetznerApiTest {
     @Test
     fun testCreateAndDeleteServer() {
         assertThat(hetznerApi.hasServer("server1")).isFalse
-        assertThat(hetznerApi.ensureVolume("server1-volume1")).isTrue
+        assertThat(hetznerApi.ensureVolume("server1-volume1", HetznerLabels())).isTrue
         assertThat(
             hetznerApi.ensureSSHKey(
                 "server1-sshkey1",
@@ -115,8 +115,8 @@ class HetznerApiTest {
             )
         ).isTrue
 
-        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "", "server1-sshkey1")).isNotNull
-        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "", "server1-sshkey1")).isNotNull
+        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "", "server1-sshkey1", HetznerLabels())).isNotNull
+        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "", "server1-sshkey1", HetznerLabels())).isNotNull
         assertThat(hetznerApi.hasServer("server1")).isTrue
         assertThat(hetznerApi.deleteServer("server1")).isTrue
         assertThat(hetznerApi.hasServer("server1")).isFalse

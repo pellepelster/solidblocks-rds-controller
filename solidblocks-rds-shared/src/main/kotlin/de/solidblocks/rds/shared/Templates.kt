@@ -8,7 +8,6 @@ import freemarker.template.Version
 import mu.KotlinLogging
 import java.io.FileWriter
 import java.io.StringWriter
-import java.io.Writer
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermissions

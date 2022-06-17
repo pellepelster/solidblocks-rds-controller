@@ -41,3 +41,7 @@ This repository contains a prototype of a AWS-like RDS service intended for loca
 ### Stuff
 * infrastructure methods diverge the running state towards a desired model. they must not depend on any special pre-existing state of the infrastructure and be able to be called multiple times (idempotent)
 * stuff will break or not respond as expected. infrastructure methods must verify the result of their actions and return if the run was successful or not, the caller can and will run a retry.
+* all config values are versioned
+* check for duplicate api keys
+* verify delete
+  * check for resources

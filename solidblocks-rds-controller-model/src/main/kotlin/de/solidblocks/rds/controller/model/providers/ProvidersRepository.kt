@@ -1,5 +1,8 @@
-package de.solidblocks.rds.controller.model
+package de.solidblocks.rds.controller.model.providers
 
+import de.solidblocks.rds.controller.model.BaseRepository
+import de.solidblocks.rds.controller.model.CloudConfigValue
+import de.solidblocks.rds.controller.model.controllers.ControllerEntity
 import de.solidblocks.rds.controller.model.tables.references.CONFIGURATION_VALUES
 import de.solidblocks.rds.controller.model.tables.references.PROVIDERS
 import org.jooq.Condition
@@ -10,24 +13,30 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
 
     val providers = PROVIDERS.`as`("providers")
 
+    init {
+        resetStatus()
+    }
+
     fun create(
         name: String,
+        controller: ControllerEntity,
         configValues: Map<String, String> = emptyMap()
-    ): ProviderEntity? {
+    ): ProviderEntity {
         val id = UUID.randomUUID()
 
         dsl.insertInto(PROVIDERS).columns(
-            PROVIDERS.ID, PROVIDERS.NAME, PROVIDERS.DELETED
-        ).values(id, name, false).execute()
+            PROVIDERS.ID, PROVIDERS.CONTROLLER, PROVIDERS.NAME, PROVIDERS.STATUS, PROVIDERS.DELETED
+        ).values(id, controller.id, name, ProviderStatus.UNKNOWN.toString(), false).execute()
 
         configValues.forEach {
             setConfiguration(ProviderId(id), it.key, it.value)
         }
 
-        return read(id)!!
+        return read(id) ?: run { throw RuntimeException("could not read created provider") }
     }
 
     fun list(filter: Condition? = null): List<ProviderEntity> = listInternal(providers.DELETED.isFalse.and(filter))
+
     fun listDeleted(): List<ProviderEntity> = listInternal(providers.DELETED.isTrue)
 
     private fun listInternal(filterCondition: Condition): List<ProviderEntity> {
@@ -40,6 +49,8 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
             ProviderEntity(
                 id = it.key.id!!,
                 name = it.key.name!!,
+                status = ProviderStatus.valueOf(it.key.status!!),
+                controller = it.key.controller!!,
                 configValues = it.value.map {
                     if (it.getValue(CONFIGURATION_VALUES.KEY_) == null) {
                         null
@@ -91,4 +102,11 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
         key: String,
         value: String
     ) = setConfiguration(ProviderId(id), key, value)
+
+    fun updateStatus(id: UUID, status: ProviderStatus) =
+        dsl.update(providers).set(providers.STATUS, status.toString()).where(providers.ID.eq(id)).execute() == 1
+
+    fun resetStatus() {
+        dsl.update(providers).set(providers.STATUS, ProviderStatus.UNKNOWN.toString()).execute()
+    }
 }

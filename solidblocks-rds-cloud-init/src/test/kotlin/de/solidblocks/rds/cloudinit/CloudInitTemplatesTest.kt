@@ -19,6 +19,6 @@ class CloudInitTemplatesTest {
             "server-public-key",
             "solidblocks-rds-postgresql-agent"
         )
-        //assertThat(tempDir.resolve("solidblocks-rds-cloud-init.sh")).exists()
+        // assertThat(tempDir.resolve("solidblocks-rds-cloud-init.sh")).exists()
     }
 }

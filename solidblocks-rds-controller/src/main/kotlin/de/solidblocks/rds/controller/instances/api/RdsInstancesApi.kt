@@ -71,7 +71,7 @@ class RdsInstancesApi(apiHttpServer: ApiHttpServer, val manager: RdsInstancesMan
             return
         }
 
-        val provider = manager.get(id)
+        val provider = manager.read(id)
 
         if (provider == null) {
             rc.jsonResponse(RdsInstanceResponseWrapper(), 404)

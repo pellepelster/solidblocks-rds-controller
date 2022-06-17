@@ -1,8 +1,15 @@
-<h2>Provider {{provider?.name}}</h2>
+<div class="container-fluid m-2">
 
-<app-rds-instances-list-item [rdsInstance]="rdsInstance" *ngFor="let rdsInstance of rdsInstances"></app-rds-instances-list-item>
+  <div class="btn-group float-right" role="group" aria-label="Basic example">
 
+    <a [routerLink]="['rds-instances', 'create']" routerLinkActive="active"
+       class="btn btn-outline-primary">Create RDS</a>
 
-<a class="btn btn-danger" (click)="delete(provider.id)">Delete provider {{provider?.name}}</a>
+    <a class="btn btn-outline-danger" (click)="delete(provider.id)">Delete provider</a>
 
-<a [routerLink]="['rds-instances', 'create']" routerLinkActive="active" class="btn btn-primary">Create RDS Instance</a>
+  </div>
+
+  <app-rds-instances-list-item [rdsInstance]="rdsInstance"
+                               *ngFor="let rdsInstance of rdsInstances"></app-rds-instances-list-item>
+
+</div>

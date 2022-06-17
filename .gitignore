@@ -91,3 +91,5 @@ gradle-app.setting
 /scratch.md
 /solidblocks-rds-postgresql-agent/src/test/resources/rds-postgresql-agent/bootstrap/artefacts/
 /solidblocks-rds-cloud-init/src/main/resources/templates-generated/
+/yolo/
+/solidblocks-shell/

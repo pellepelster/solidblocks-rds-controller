@@ -5,7 +5,7 @@ import {ToastService} from "../../../utils/toast.service";
 import {ActivatedRoute, Router} from "@angular/router";
 import {Subscription} from "rxjs";
 import {RdsInstanceResponse} from "../../../services/types";
-import {ContextService} from "../../navigation/context.service";
+import {NavigationService} from "../../navigation/navigation.service";
 
 @Component({
   selector: 'app-rds-instances-details',
@@ -17,11 +17,12 @@ export class RdsInstancesDetailsComponent extends BaseFormComponent implements O
 
   rdsInstance: RdsInstanceResponse;
 
-  constructor(private contextService: ContextService, private router: Router, private route: ActivatedRoute, private rdsInstancesService: RdsInstancesService, private toastsService: ToastService) {
+  constructor(private navigationService: NavigationService, private router: Router, private route: ActivatedRoute, private rdsInstancesService: RdsInstancesService, private toastsService: ToastService) {
     super(toastsService);
   }
 
   ngOnInit(): void {
+    /*
     this.subscription = this.route.params.subscribe(
       (next) => {
         this.rdsInstancesService.get(next['rdsInstanceId']).subscribe(
@@ -34,15 +35,19 @@ export class RdsInstancesDetailsComponent extends BaseFormComponent implements O
           }
         )
       });
+
+     */
   }
 
   delete(id: string) {
+
+    /*
     this.rdsInstancesService.delete(id).subscribe((next) => {
         this.router.navigate(['providers', this.contextService.currentProviderId.value])
       },
       (error) => {
         this.toastsService.handleErrorResponse(error)
       }
-    )
+    )*/
   }
 }

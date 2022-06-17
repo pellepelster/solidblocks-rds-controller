@@ -1,17 +1,18 @@
 import {NgModule} from '@angular/core';
 import {RouterModule, Routes} from '@angular/router';
-import {ProvidersHomeComponent} from "./components/providers/providers-home/providers-home.component";
+import {HomeComponent} from "./components/home/home.component";
 
 const routes: Routes = [
   {
     path: '',
-    component: ProvidersHomeComponent
+    pathMatch: 'full',
+    component: HomeComponent
   },
   {
     path: 'providers',
+    pathMatch: 'prefix',
     loadChildren: () => import('./components/providers/providers-module').then(m => m.ProvidersModule)
-  },
-
+  }
 ];
 
 @NgModule({

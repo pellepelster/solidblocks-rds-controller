@@ -88,7 +88,7 @@ databaseChangeLog:
                     nullable: false
 
         - createTable:
-            tableName: providers
+            tableName: controllers
             columns:
               - column:
                   name: id
@@ -98,6 +98,47 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: name
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: deleted
+                  type: boolean
+                  constraints:
+                    nullable: false
+
+        - createIndex:
+            columns:
+              - column:
+                  name: name
+            indexName: controllers_name
+            tableName: controllers
+            unique: true
+
+
+        - createTable:
+            tableName: providers
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: controller
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_rds_controllers
+                    references: controllers(id)
+              - column:
+                  name: name
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
                   type: varchar(256)
                   constraints:
                     nullable: false
@@ -133,6 +174,11 @@ databaseChangeLog:
                     references: providers(id)
               - column:
                   name: name
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
                   type: varchar(256)
                   constraints:
                     nullable: false
@@ -181,6 +227,13 @@ databaseChangeLog:
                     nullable: true
                     foreignKeyName: fk_configuration_values_rds_instance
                     references: rds_instances(id)
+              - column:
+                  name: controller
+                  type: uuid
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_configuration_values_controller
+                    references: controllers(id)
               - column:
                   name: provider
                   type: uuid

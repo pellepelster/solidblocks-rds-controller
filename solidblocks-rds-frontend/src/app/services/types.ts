@@ -11,6 +11,7 @@ export interface ConfigValueDefinition {
 export interface ProviderResponse {
   name: string
   id: string
+  status: string
 }
 
 export interface ProvidersResponseWrapper {
