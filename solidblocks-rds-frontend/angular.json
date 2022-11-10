@@ -27,12 +27,9 @@
               "src/assets"
             ],
             "styles": [
-              "node_modules/bootstrap-icons/font/bootstrap-icons.scss",
-              "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "src/styles.scss"
             ],
             "scripts": [
-              "node_modules/jquery/dist/jquery.js",
               "node_modules/bootstrap/dist/js/bootstrap.bundle.js"
             ]
           },
@@ -107,5 +104,8 @@
       }
     }
   },
-  "defaultProject": "solidblocks-frontend"
+  "defaultProject": "solidblocks-frontend",
+  "cli": {
+    "analytics": false
+  }
 }

@@ -9,6 +9,9 @@ object Constants {
     fun data1VolumeName(rdsInstance: RdsInstanceEntity) =
         "${rdsInstance.name}-${LOCATION.fsn1}-data1-${rdsInstance.id}".lowercase()
 
+    fun backup1VolumeName(rdsInstance: RdsInstanceEntity) =
+        "${rdsInstance.name}-${LOCATION.fsn1}-backup1-${rdsInstance.id}".lowercase()
+
     fun serverName(rdsInstance: RdsInstanceEntity) =
         "${rdsInstance.name}-${LOCATION.fsn1}-${rdsInstance.id}".lowercase()
 

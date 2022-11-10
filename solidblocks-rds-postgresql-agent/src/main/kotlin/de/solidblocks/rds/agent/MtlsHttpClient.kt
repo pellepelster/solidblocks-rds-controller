@@ -8,6 +8,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.Response
 import java.security.cert.CertificateFactory
 import java.security.cert.X509Certificate
 
@@ -50,13 +51,18 @@ class MtlsHttpClient(
     }
 
     inline fun <reified T> get(path: String): HttpResponse<T> {
-        val type = objectMapper.typeFactory.constructType(T::class.java)
 
         val request = Request.Builder().url("$baseAddress/$path").build()
 
         val response = client.newCall(request).execute()
 
+        val type = objectMapper.typeFactory.constructType(T::class.java)
         return HttpResponse(response.code, objectMapper.readValue(response.body?.bytes(), type))
+    }
+
+    fun getRaw(path: String): Response {
+        val request = Request.Builder().url("$baseAddress/$path").build()
+        return client.newCall(request).execute()
     }
 
     inline fun <reified T> post(path: String, data: Any): HttpResponse<T> {
@@ -71,9 +77,12 @@ class MtlsHttpClient(
         return HttpResponse(response.code, objectMapper.readValue(response.body?.bytes(), type))
     }
 
-    fun post(path: String): HttpResponse<Any> {
+    fun postRaw(path: String, data: Any?): HttpResponse<Any> {
         val request =
-            Request.Builder().post("".toRequestBody("application/json".toMediaTypeOrNull())).url("$baseAddress/$path")
+            Request.Builder().post(
+                jacksonObjectMapper().writeValueAsString(data).toRequestBody("application/json".toMediaTypeOrNull())
+            )
+                .url("$baseAddress/$path")
                 .build()
 
         val response = client.newCall(request).execute()

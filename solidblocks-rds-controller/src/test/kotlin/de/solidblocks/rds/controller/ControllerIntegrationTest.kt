@@ -50,6 +50,20 @@ class ControllerIntegrationTest {
     fun testManageProviders(database: Database) {
         val controller = Controller(database)
 
+        await.until {
+            try {
+                Given {
+                    port(8080)
+                } When {
+                    get("/api/v1/providers")
+                } Extract {
+                    this.statusCode()
+                } == 200
+            } catch (e: Exception) {
+                false
+            }
+        }
+
         Given {
             port(8080)
         } When {

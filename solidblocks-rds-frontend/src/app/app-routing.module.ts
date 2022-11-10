@@ -10,7 +10,6 @@ const routes: Routes = [
   },
   {
     path: 'providers',
-    pathMatch: 'prefix',
     loadChildren: () => import('./components/providers/providers-module').then(m => m.ProvidersModule)
   }
 ];

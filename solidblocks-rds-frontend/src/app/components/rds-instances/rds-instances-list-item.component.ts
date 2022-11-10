@@ -7,7 +7,7 @@ import {RdsInstanceResponse} from "../../services/types";
     <div class="card" style="width: 18rem;">
       <div class="card-body">
         <h5 class="card-title">
-          <a routerLink="rds-instances/{{rdsInstance.id}}" routerLinkActive="active">RDS
+          <a routerLink="rds/{{rdsInstance.id}}" routerLinkActive="active">RDS
             Instance {{rdsInstance.name}}</a>
         </h5>
         <p class="card-text">

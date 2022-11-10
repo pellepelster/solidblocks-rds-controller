@@ -1,17 +1,16 @@
 package de.solidblocks.rds.cloudinit
 
 import de.solidblocks.rds.shared.Templates
-import java.util.Base64.*
+import java.util.Base64.getEncoder
 
 class CloudInitTemplates {
 
     companion object {
         fun solidblocksRdsCloudInit(
             solidblocksVersion: String,
-            storageLocalDevice: String,
+            data1Device: String,
+            backup1Device: String,
             hostname: String,
-            githubUsername: String,
-            githubPat: String,
             clientCAPublicKey: String,
             serverPrivateKey: String,
             serverPublicKey: String,
@@ -21,10 +20,9 @@ class CloudInitTemplates {
             "solidblocks-rds-cloud-init.sh",
             variables = mapOf(
                 "solidblocks_version" to solidblocksVersion,
-                "storage_local_device" to storageLocalDevice,
+                "solidblocks_storage_data1_device" to data1Device,
+                "solidblocks_storage_backup1_device" to backup1Device,
                 "solidblocks_hostname" to hostname,
-                "github_username" to githubUsername,
-                "github_pat" to githubPat,
                 "solidblocks_agent" to solidblocksAgent,
                 "solidblocks_client_ca_public_key" to getEncoder().encodeToString(clientCAPublicKey.toByteArray()),
                 "solidblocks_server_private_key" to getEncoder().encodeToString(serverPrivateKey.toByteArray()),

@@ -56,6 +56,44 @@ function ensure_environment() {
   software_set_export_path
 }
 
+function task_test() {
+  task_publish
+  task_prepare_integration_test
+
+  export HCLOUD_TOKEN="$(pass_wrapper "hetzner_api_key")"
+  "${DIR}/gradlew" check
+}
+
+function task_prepare_integration_test() {
+  local timestamp="$(date +%Y%m%d%H%M%S)"
+  local blue_version="${timestamp}-blue"
+  local green_version="${timestamp}-green"
+
+  SOLIDBLOCKS_VERSION="${blue_version}" "${DIR}/gradlew" solidblocks-rds-postgresql-agent:assemble
+
+  local artefacts_dir="${DIR}/solidblocks-rds-postgresql-agent/src/test/resources/rds-postgresql-agent/bootstrap/artefacts"
+
+  rm -rf "${artefacts_dir}"
+  mkdir -p "${artefacts_dir}"
+
+  cp "${DIR}/solidblocks-rds-postgresql-agent/build/distributions/solidblocks-rds-postgresql-agent-${blue_version}.tar" "${artefacts_dir}/solidblocks-rds-postgresql-agent-${blue_version}.tar"
+  echo "${blue_version}" > "${artefacts_dir}/blue.version"
+
+  SOLIDBLOCKS_VERSION="${green_version}" "${DIR}/gradlew" solidblocks-rds-postgresql-agent:assemble
+  cp "${DIR}/solidblocks-rds-postgresql-agent/build/distributions/solidblocks-rds-postgresql-agent-${green_version}.tar" "${artefacts_dir}/solidblocks-rds-postgresql-agent-${green_version}.tar"
+  echo "${green_version}" > "${artefacts_dir}/green.version"
+}
+
+function task_publish() {
+  export R2_ACCESS_KEY="$(pass_wrapper "r2_access_key_id")"
+  export R2_SECRET_ACCESS_KEY="$(pass_wrapper "r2_secret_access_key")"
+  "${DIR}/gradlew" publish
+}
+
+  function task_increment_version() {
+  date +%Y%m%d%H%M%S > "${DIR}/version.txt"
+}
+
 ###############################################################################
 # secret handling
 ###############################################################################
@@ -79,5 +117,9 @@ esac
 
 case "${ARG}" in
   pass) task_pass "$@" ;;
+  test) task_test "$@" ;;
+  prepare-integration-test) task_prepare_integration_test "$@" ;;
+  publish) task_publish "$@" ;;
+  increment-version) task_increment_version "$@" ;;
   *) task_usage ;;
 esac

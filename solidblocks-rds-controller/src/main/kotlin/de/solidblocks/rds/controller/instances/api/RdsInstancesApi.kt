@@ -1,9 +1,9 @@
 package de.solidblocks.rds.controller.instances.api
 
+import de.solidblocks.rds.base.jsonRequest
+import de.solidblocks.rds.base.jsonResponse
 import de.solidblocks.rds.controller.api.ApiHttpServer
 import de.solidblocks.rds.controller.api.GenericApiResponse
-import de.solidblocks.rds.controller.api.jsonRequest
-import de.solidblocks.rds.controller.api.jsonResponse
 import de.solidblocks.rds.controller.instances.RdsInstancesManager
 import io.vertx.ext.web.RoutingContext
 import java.util.*

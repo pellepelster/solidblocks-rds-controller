@@ -1,5 +1,3 @@
-import org.gradle.kotlin.dsl.`maven-publish`
-
 plugins {
     `maven-publish`
 }
@@ -8,10 +6,10 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/pellepelster/solidblocks-rds")
-            credentials {
-                username = project.findProperty("gpr.user") as String? ?: System.getenv("GITHUB_USERNAME")
-                password = project.findProperty("gpr.key") as String? ?: System.getenv("GITHUB_TOKEN")
+            url = uri("s3://solidblocks/")
+            credentials(AwsCredentials::class) {
+                accessKey = System.getenv("R2_ACCESS_KEY")
+                secretKey = System.getenv("R2_SECRET_ACCESS_KEY")
             }
         }
     }

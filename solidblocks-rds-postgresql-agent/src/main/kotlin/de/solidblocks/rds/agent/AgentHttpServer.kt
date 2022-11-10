@@ -1,5 +1,6 @@
 package de.solidblocks.rds.agent
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.http.ClientAuth
@@ -21,15 +22,19 @@ class AgentHttpServer(
     publicKeyRaw: String
 ) {
 
+    private val jackson = jacksonObjectMapper()
+
     private val logger = KotlinLogging.logger {}
 
     private val shutdown = CountDownLatch(1)
 
+    private var vertx: Vertx = Vertx.vertx()
+
     private var server: HttpServer
 
-    init {
-        val vertx = Vertx.vertx()
+    private var router: Router
 
+    init {
         val privateKey = Buffer.buffer(
             privateKeyRaw.replace(
                 "BEGIN EC PRIVATE KEY",
@@ -47,12 +52,10 @@ class AgentHttpServer(
             )
             .setPemKeyCertOptions(pemOptions)
 
-        val router = Router.router(vertx)
+        router = Router.router(vertx)
         router.route().handler(BodyHandler.create())
 
         server = vertx.createHttpServer(options)
-        AgentRoutes(vertx, router, shutdown)
-
         val completableFuture = CompletableFuture<Boolean>()
 
         server.exceptionHandler {
@@ -60,12 +63,12 @@ class AgentHttpServer(
                 "unhandled error"
             }
         }
-
         server.invalidRequestHandler {
             logger.warn {
                 "invalid request '${it.path()}'"
             }
         }
+
         logger.info { "starting agent http api on port $port" }
         server.requestHandler(router).listen(port) {
             if (it.succeeded()) {
@@ -80,9 +83,23 @@ class AgentHttpServer(
         completableFuture.join()
     }
 
+    fun waitForShutdownAndExit() {
+        waitForShutdown()
+        exitProcess(7)
+    }
+
     fun waitForShutdown() {
         shutdown.await()
         server.close().result()
-        exitProcess(7)
+    }
+
+    fun registerRoute(path: String, callback: (Router) -> Unit) {
+        val subRouter = Router.router(vertx)
+        router.route(path).subRouter(subRouter)
+        callback.invoke(subRouter)
+    }
+
+    fun shutdown() {
+        shutdown.countDown()
     }
 }

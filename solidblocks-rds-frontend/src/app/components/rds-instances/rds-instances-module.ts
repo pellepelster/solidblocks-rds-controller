@@ -2,7 +2,6 @@ import {NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {ControlsModule} from "../controls/controls-module";
 import {ReactiveFormsModule} from "@angular/forms";
-import {RdsInstancesHomeComponent} from "./rds-instances-home/rds-instances-home.component";
 import {
   ProviderWizardStepsDirective,
   RdsInstancesCreateComponent,
@@ -10,15 +9,15 @@ import {
   RdsInstancesWizardStep2Component
 } from "./rds-instances-create/rds-instances-create.component";
 import {RdsInstancesListItemComponent} from "./rds-instances-list-item.component";
-import {RdsInstancesRoutingModule} from "./rds-instances-routing-module";
 import {RdsInstancesComponent} from "./rds-instances.component";
-import {RdsInstancesDetailsComponent} from "./rds-instances-details/rds-instances-details.component";
+import {RdsInstancesHomeComponent} from "./rds-instances-home/rds-instances-home.component";
+import {RouterModule} from "@angular/router";
+import {RdsInstancesRoutingModule} from "./rds-instances-routing-module";
 
 @NgModule({
   declarations: [
-    RdsInstancesHomeComponent,
     RdsInstancesListItemComponent,
-    RdsInstancesDetailsComponent,
+    RdsInstancesHomeComponent,
     RdsInstancesCreateComponent,
     ProviderWizardStepsDirective,
     RdsInstancesWizardStep1Component,
@@ -33,6 +32,7 @@ import {RdsInstancesDetailsComponent} from "./rds-instances-details/rds-instance
     CommonModule,
     ControlsModule,
     ReactiveFormsModule,
+    RouterModule,
     RdsInstancesRoutingModule
   ]
 })

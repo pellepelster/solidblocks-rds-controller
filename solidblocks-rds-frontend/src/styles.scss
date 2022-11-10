@@ -1,8 +1,24 @@
+@import 'bootstrap/scss/bootstrap';
+
 $light-color: #f5f5f5;
 $dark-color: #aaa;
 
+app-root > .container-fluid {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.border-shadow-bottom {
+  box-shadow: 0px 1px 2px #888;
+}
+
+.border-shadow-right {
+  box-shadow: 1px 0px 2px #888;
+}
+
 a {
   color: black;
+  text-decoration: none;
 }
 
 .card:hover {
@@ -10,16 +26,25 @@ a {
 }
 
 .card {
-  border-radius: 0.6em;
+  border-radius: 0.4em;
 }
 
 .card-list .card-add {
   background-color: $light-color;
   border: $dark-color 2px dashed;
+}
+
+.card-list .card-add * {
   font-size: 110%;
   color: $dark-color;
 }
 
 body {
   background-color: $light-color;
+}
+
+.component-toolbar {
+  min-width: 60rem;
+  margin-bottom: 1rem;
+  margin-top: 1rem;
 }

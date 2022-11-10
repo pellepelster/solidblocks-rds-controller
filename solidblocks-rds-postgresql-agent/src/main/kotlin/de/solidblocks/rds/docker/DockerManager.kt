@@ -172,8 +172,12 @@ class DockerManager(
             mappedPorts(it)?.let { port ->
                 (0 until total).map { i ->
                     Thread.sleep(1000)
-                    logger.info { "running healtcheck $i out of $total" }
-                    healthCheck.invoke(InetSocketAddress("localhost", port))
+                    logger.info { "running healthcheck $i out of $total" }
+                    try {
+                        healthCheck.invoke(InetSocketAddress("localhost", port))
+                    } catch (e: Exception) {
+                        false
+                    }
                 }.all { it }
             }
         }.all { it }

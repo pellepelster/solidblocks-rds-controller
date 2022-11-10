@@ -18,14 +18,20 @@ class Controller(database: Database) {
 
     private val logger = KotlinLogging.logger {}
 
+    private val rdsInstancesRepository = RdsInstancesRepository(database.dsl)
+
+    private val providersRepository = ProvidersRepository(database.dsl)
+
+    private val controllersRepository = ControllersRepository(database.dsl)
+
     private val rdsScheduler = RdsScheduler(database)
 
-    private val controllersManager = ControllersManager(ControllersRepository(database.dsl))
+    private val controllersManager = ControllersManager(controllersRepository)
 
-    private val providersManager = ProvidersManager(ProvidersRepository(database.dsl), controllersManager, rdsScheduler)
+    private val providersManager = ProvidersManager(providersRepository, rdsInstancesRepository, controllersManager, rdsScheduler)
 
     private val instancesManager =
-        RdsInstancesManager(RdsInstancesRepository(database.dsl), providersManager, controllersManager, rdsScheduler)
+        RdsInstancesManager(rdsInstancesRepository, providersManager, controllersManager, rdsScheduler)
 
     private val executor = DefaultLockingTaskExecutor(JdbcLockProvider(database.datasource))
 

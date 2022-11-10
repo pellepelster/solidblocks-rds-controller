@@ -3,7 +3,7 @@ import {FormControl, FormGroup, Validators} from "@angular/forms";
 import {RdsInstancesService} from "../../../services/rds-instances.service";
 import {BaseFormComponent} from "../../base-form.component";
 import {ToastService} from "../../../utils/toast.service";
-import {Router} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {NavigationService} from "../../navigation/navigation.service";
 
 @Directive({
@@ -15,6 +15,9 @@ export class ProviderWizardStepsDirective {
 }
 
 interface RdsInstancesCreateStepComponent {
+
+  providerId: string
+
   stepIsValid(): boolean
 
   finish(): any
@@ -37,6 +40,8 @@ interface RdsInstancesCreateStepComponent {
 export class RdsInstancesWizardStep1Component implements RdsInstancesCreateStepComponent {
 
   selectedRdsInstance: string | null
+
+  providerId: string
 
   rdsInstanceTypes = [
     {
@@ -72,6 +77,8 @@ export class RdsInstancesWizardStep1Component implements RdsInstancesCreateStepC
 })
 export class RdsInstancesWizardStep2Component extends BaseFormComponent implements RdsInstancesCreateStepComponent {
 
+  providerId: string
+
   form = new FormGroup({
     name: new FormControl('', [
       Validators.required
@@ -83,16 +90,14 @@ export class RdsInstancesWizardStep2Component extends BaseFormComponent implemen
   }
 
   finish() {
-
-    /*
-    this.rdsInstancesService.create(this.form.value.name, providerId).subscribe(
+    this.rdsInstancesService.create(this.form.value.name as string, this.providerId).subscribe(
       (data) => {
-        this.router.navigate(['providers', providerId, 'rds-instances', data.rdsInstance.id])
+        this.router.navigate(['providers', this.providerId, 'rds', data.rdsInstance.id])
       },
       (error) => {
         this.handleErrorResponse(error)
       }
-    )*/
+    )
   }
 
   stepIsValid(): boolean {
@@ -114,11 +119,18 @@ export class RdsInstancesCreateComponent extends BaseFormComponent implements On
     {type: RdsInstancesWizardStep2Component},
   ];
 
+  providerId: string
+
   currentStepIndex: number = 0
   currentStep: ComponentRef<RdsInstancesCreateStepComponent>
 
-  constructor(private rdsInstancesService: RdsInstancesService, private router: Router, toastService: ToastService) {
+  constructor(private rdsInstancesService: RdsInstancesService, private route: ActivatedRoute, private router: Router, toastService: ToastService) {
     super(toastService);
+
+    this.route.parent!.params.subscribe(
+      (params) => {
+        this.providerId = params['providerId']
+      })
   }
 
   hasNextStep() {
@@ -153,6 +165,9 @@ export class RdsInstancesCreateComponent extends BaseFormComponent implements On
     viewContainerRef.clear();
 
     this.currentStep = viewContainerRef.createComponent<RdsInstancesCreateStepComponent>(this.steps[this.currentStepIndex].type);
+
+    this.currentStep.instance.providerId = this.providerId
+
   }
 
   finish() {

@@ -2,26 +2,21 @@ import {RouterModule, Routes} from "@angular/router";
 import {NgModule} from "@angular/core";
 import {RdsInstancesCreateComponent} from "./rds-instances-create/rds-instances-create.component";
 import {RdsInstancesComponent} from "./rds-instances.component";
-import {RdsInstancesDetailsComponent} from "./rds-instances-details/rds-instances-details.component";
 import {RdsInstancesHomeComponent} from "./rds-instances-home/rds-instances-home.component";
 
 const routes: Routes = [
   {
-    path: 'xx',
+    path: '',
     component: RdsInstancesComponent,
 
     children: [
       {
-        path: 'xx',
-        component: RdsInstancesHomeComponent,
-      },
-      {
-        path: 'xxcreate',
+        path: 'create',
         component: RdsInstancesCreateComponent,
       },
       {
-        path: 'xx:rdsInstanceId',
-        component: RdsInstancesDetailsComponent,
+        path: ':rdsInstanceId',
+        component: RdsInstancesHomeComponent,
       }
     ]
   }

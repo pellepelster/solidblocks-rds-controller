@@ -1,24 +1,53 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute} from "@angular/router";
-import {ToastService} from "../../../utils/toast.service";
+import {Component, OnInit} from '@angular/core';
 import {RdsInstancesService} from "../../../services/rds-instances.service";
-import {ProviderResponse} from "../../../services/types";
+import {BaseFormComponent} from "../../base-form.component";
+import {ToastService} from "../../../utils/toast.service";
+import {ActivatedRoute, Router} from "@angular/router";
+import {Subscription} from "rxjs";
+import {RdsInstanceResponse} from "../../../services/types";
+import {NavigationService} from "../../navigation/navigation.service";
 
 @Component({
   selector: 'app-rds-instances-home',
   templateUrl: './rds-instances-home.component.html',
 })
-export class RdsInstancesHomeComponent implements OnInit, OnDestroy {
+export class RdsInstancesHomeComponent extends BaseFormComponent implements OnInit {
 
-  providers: Array<ProviderResponse>
+  private subscription: Subscription;
 
-  constructor(private route: ActivatedRoute, private providersService: RdsInstancesService, private toastsService: ToastService) {
+  rdsInstance: RdsInstanceResponse | null;
+
+  constructor(private navigationService: NavigationService, private router: Router, private route: ActivatedRoute, private rdsInstancesService: RdsInstancesService, private toastsService: ToastService) {
+    super(toastsService);
   }
 
   ngOnInit(): void {
+    /*
+    this.subscription = this.route.params.subscribe(
+      (next) => {
+        this.rdsInstancesService.get(next['rdsInstanceId']).subscribe(
+          (next) => {
+            this.rdsInstance = next.rdsInstance
+            this.contextService.nextRdsInstance(next.rdsInstance)
+          },
+          (error) => {
+            this.toastsService.handleErrorResponse(error)
+          }
+        )
+      });
+
+     */
   }
 
-  ngOnDestroy() {
-  }
+  delete(id: string) {
 
+    /*
+    this.rdsInstancesService.delete(id).subscribe((next) => {
+        this.router.navigate(['providers', this.contextService.currentProviderId.value])
+      },
+      (error) => {
+        this.toastsService.handleErrorResponse(error)
+      }
+    )*/
+  }
 }

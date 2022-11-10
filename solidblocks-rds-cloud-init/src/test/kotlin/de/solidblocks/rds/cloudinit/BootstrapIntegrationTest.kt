@@ -1,10 +1,7 @@
 package de.solidblocks.rds.cloudinit
 
-import com.github.tomakehurst.wiremock.client.BasicCredentials
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.*
-import de.solidblocks.rds.shared.SharedConstants.githubPat
-import de.solidblocks.rds.shared.SharedConstants.githubUsername
 import mu.KotlinLogging
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.Test
@@ -49,9 +46,8 @@ class BootstrapIntegrationTest {
             CloudInitTemplates.solidblocksRdsCloudInit(
                 "version1",
                 "/dev/data1",
+                "/dev/backup1",
                 "host1",
-                githubUsername,
-                githubPat,
                 "ca-public-key",
                 "server-private-key",
                 "server-public-key",
@@ -67,13 +63,11 @@ class BootstrapIntegrationTest {
                 .withExposedService("wiremock", 8080).waitingFor("wiremock", Wait.forListeningPort())
                 .withEnv("CLOUD_INIT_FILE", cloudInitFile.absolutePath)
                 .withEnv("REPOSITORY_BASE_ADDRESS", "http://wiremock:8080")
-                .withEnv("GITHUB_USERNAME", githubUsername)
-                .withEnv("GITHUB_PAT", githubPat)
         compose.start()
 
         val wireMock = WireMock("localhost", compose.getServicePort("wiremock", 8080))
         wireMock.register(
-            get("/pellepelster/solidblocks-rds/solidblocks-rds/solidblocks-rds-cloud-init/version1/solidblocks-rds-cloud-init-version1-assets.jar")
+            get("/solidblocks-rds-controller/solidblocks-rds-cloud-init/version1/solidblocks-rds-cloud-init-version1-assets.jar")
                 .willReturn(
                     ok().withBody(createBootstrapJar(listOf("file1.txt" to fileContent)))
                 )
@@ -87,9 +81,8 @@ class BootstrapIntegrationTest {
 
         wireMock.verifyThat(
             getRequestedFor(
-                urlEqualTo("/pellepelster/solidblocks-rds/solidblocks-rds/solidblocks-rds-cloud-init/version1/solidblocks-rds-cloud-init-version1-assets.jar")
+                urlEqualTo("/solidblocks-rds-controller/solidblocks-rds-cloud-init/version1/solidblocks-rds-cloud-init-version1-assets.jar")
             )
-                .withBasicAuth(BasicCredentials("pellepelster", githubPat))
         )
     }
 }

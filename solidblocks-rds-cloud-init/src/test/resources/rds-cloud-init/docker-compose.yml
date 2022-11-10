@@ -6,8 +6,6 @@ services:
     image: debian:11
     command: /bin/bash -c "/test.sh; sleep 999999"
     environment:
-      - GITHUB_USERNAME=${GITHUB_USERNAME}
-      - GITHUB_PAT=${GITHUB_PAT}
       - REPOSITORY_BASE_ADDRESS=${REPOSITORY_BASE_ADDRESS}
     volumes:
       - ${CLOUD_INIT_FILE}:/test.sh

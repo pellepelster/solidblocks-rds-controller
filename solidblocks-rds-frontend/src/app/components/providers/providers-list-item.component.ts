@@ -7,7 +7,7 @@ import {ProviderResponse} from "../../services/types";
     <div class="card" style="width: 18rem;">
       <div class="card-body">
         <h5 class="card-title">
-          <a [routerLink]="[{ outlets: { providers: [provider.id] } }]">Provider {{provider.name}}</a>
+          <a [routerLink]="[provider.id]">Provider {{provider.name}}</a>
           <span class="badge bg-{{ provider.status | providerStatusColor}} ml-2">{{provider.status}}</span>
         </h5>
         <p class="card-text">

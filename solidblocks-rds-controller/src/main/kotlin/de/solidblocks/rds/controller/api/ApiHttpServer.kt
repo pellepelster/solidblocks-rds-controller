@@ -6,26 +6,12 @@ import io.vertx.core.Future
 import io.vertx.core.Vertx
 import io.vertx.core.http.HttpServer
 import io.vertx.ext.web.Router
-import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
 import io.vertx.ext.web.handler.CorsHandler
 import io.vertx.ext.web.handler.JWTAuthHandler
 import mu.KotlinLogging
 
 val jackson = jacksonObjectMapper()
-
-fun RoutingContext.jsonResponse(response: Any, code: Int = 200) {
-    this.response().setStatusCode(code).putHeader("Content-Type", "application/json")
-        .end(jackson.writeValueAsString(response))
-}
-
-fun RoutingContext.jsonResponse(code: Int = 200) {
-    this.response().setStatusCode(code).end()
-}
-
-fun <T> RoutingContext.jsonRequest(clazz: Class<T>): T {
-    return jackson.readValue(this.body.bytes, clazz)
-}
 
 class ApiHttpServer(port: Int = 8080) {
 

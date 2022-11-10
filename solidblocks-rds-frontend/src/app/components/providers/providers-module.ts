@@ -2,7 +2,7 @@ import {NgModule} from "@angular/core";
 import {CommonModule} from "@angular/common";
 import {ControlsModule} from "../controls/controls-module";
 import {ReactiveFormsModule} from "@angular/forms";
-import {ProvidersHomeComponent} from "./providers-home/providers-home.component";
+import {ProvidersListComponent} from "./providers-list/providers-list.component";
 import {
   ProvidersCreateComponent,
   ProvidersWizardStep1Component,
@@ -12,14 +12,14 @@ import {
 import {ProvidersListItemComponent} from "./providers-list-item.component";
 import {ProvidersRoutingModule} from "./providers-routing-module";
 import {ProvidersComponent} from "./providers.component";
-import {ProvidersDetailsComponent} from "./providers-details/providers-details.component";
+import {ProvidersHomeComponent} from "./providers-home/providers-home.component";
 import {RdsInstancesModule} from "../rds-instances/rds-instances-module";
-import {ProviderStatusColorPipe} from "./providers-details/provider-status-color.pipe";
+import {ProviderStatusColorPipe} from "./providers-home/provider-status-color.pipe";
 
 @NgModule({
   declarations: [
+    ProvidersListComponent,
     ProvidersHomeComponent,
-    ProvidersDetailsComponent,
     ProvidersCreateComponent,
     ProviderWizardStepsDirective,
     ProvidersWizardStep1Component,

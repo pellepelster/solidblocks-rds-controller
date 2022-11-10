@@ -1,7 +1,7 @@
 import {Component, OnInit} from '@angular/core';
-import {NavigationBreadcrumb, NavigationService} from "./navigation.service";
 import {ProviderResponse} from "../../services/types";
 import {ProvidersService} from "../../services/providers.service";
+import {NavigationService} from "./navigation.service";
 
 
 @Component({
@@ -10,9 +10,7 @@ import {ProvidersService} from "../../services/providers.service";
 })
 export class NavigationComponent implements OnInit {
 
-  breadcrumbs: NavigationBreadcrumb[] = []
-
-  currentProvider: ProviderResponse;
+  currentProvider: ProviderResponse | null;
 
   providers: ProviderResponse[];
 
@@ -20,9 +18,6 @@ export class NavigationComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.navigationService.breadcrumbs.subscribe((breadcrumbs) => {
-      this.breadcrumbs = breadcrumbs as NavigationBreadcrumb[]
-    })
 
     this.navigationService.currentProvider.subscribe((provider) => {
       this.currentProvider = provider as ProviderResponse

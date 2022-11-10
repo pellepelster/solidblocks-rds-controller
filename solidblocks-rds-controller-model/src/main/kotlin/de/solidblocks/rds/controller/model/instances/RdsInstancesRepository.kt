@@ -39,6 +39,10 @@ class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
         return read(id) ?: run { throw RuntimeException("could not read created rds instance") }
     }
 
+    fun count() = dsl.fetchCount(rdsInstances)
+
+    fun count(providerId: UUID) = dsl.fetchCount(rdsInstances, rdsInstances.PROVIDER.eq(providerId))
+
     fun list(providerId: UUID) = list(rdsInstances.PROVIDER.eq(providerId))
 
     fun list(filter: Condition? = null): List<RdsInstanceEntity> {
@@ -111,7 +115,7 @@ class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
         value: String
     ) = setConfiguration(RdsInstanceId(id), key, value)
 
-    fun updateStatus(id: UUID, status: ProviderStatus) =
+    fun updateStatus(id: UUID, status: RdsInstanceStatus) =
         dsl.update(rdsInstances).set(rdsInstances.STATUS, status.toString()).where(rdsInstances.ID.eq(id))
             .execute() == 1
 

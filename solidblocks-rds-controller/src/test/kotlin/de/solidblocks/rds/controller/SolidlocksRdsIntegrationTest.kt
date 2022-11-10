@@ -3,7 +3,6 @@ package de.solidblocks.rds.controller
 import de.solidblocks.rds.base.Database
 import de.solidblocks.rds.controller.controllers.ControllersManager
 import de.solidblocks.rds.controller.instances.RdsInstancesManager
-import de.solidblocks.rds.controller.instances.RdsInstancesWorker
 import de.solidblocks.rds.controller.instances.api.RdsInstanceCreateRequest
 import de.solidblocks.rds.controller.model.controllers.ControllersRepository
 import de.solidblocks.rds.controller.model.instances.RdsInstancesRepository
@@ -11,18 +10,16 @@ import de.solidblocks.rds.controller.model.providers.ProvidersRepository
 import de.solidblocks.rds.controller.providers.HetznerApi
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import de.solidblocks.rds.controller.providers.api.ProviderCreateRequest
-import de.solidblocks.rds.controller.utils.HetznerLabels
+import de.solidblocks.rds.shared.dto.VersionResponse
+import de.solidblocks.rds.shared.solidblocksVersion
 import de.solidblocks.rds.test.ManagementTestDatabaseExtension
+import io.mockk.justRun
 import io.mockk.mockk
 import me.tomsdevsn.hetznercloud.HetznerCloudAPI
 import mu.KotlinLogging
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.await
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.junit.jupiter.api.extension.ExtendWith
 import java.nio.file.Path
@@ -71,11 +68,25 @@ class SolidlocksRdsIntegrationTest {
     @Test
     fun testCreateRdsInstance(database: Database) {
 
-        val controllersManager = ControllersManager(ControllersRepository(database.dsl))
-        val providersManager = ProvidersManager(ProvidersRepository(database.dsl), controllersManager, mockk())
+        val rdsScheduler = mockk<RdsScheduler>()
+        justRun { rdsScheduler.addOneTimeTask(any()) }
+        justRun { rdsScheduler.addRecurringTask(any()) }
+        justRun { rdsScheduler.scheduleTask(any()) }
 
-        val rdsInstancesManager = RdsInstancesManager(RdsInstancesRepository(database.dsl), providersManager, controllersManager, mockk())
-        val rdsInstancesWorker = RdsInstancesWorker(rdsInstancesManager, providersManager, controllersManager)
+        val controllersManager = ControllersManager(ControllersRepository(database.dsl))
+        val providersManager = ProvidersManager(
+            ProvidersRepository(database.dsl),
+            RdsInstancesRepository(database.dsl),
+            controllersManager,
+            rdsScheduler
+        )
+
+        val rdsInstancesManager = RdsInstancesManager(
+            RdsInstancesRepository(database.dsl),
+            providersManager,
+            controllersManager,
+            rdsScheduler
+        )
 
         val provider =
             providersManager.create(ProviderCreateRequest(name = "hetzner1", apiKey = System.getenv("HCLOUD_TOKEN")))
@@ -84,33 +95,14 @@ class SolidlocksRdsIntegrationTest {
         assertThat(providersManager.applyAll()).isTrue
         assertThat(rdsInstancesManager.applyAll()).isTrue
 
-        val runningInstancesStatus = await().atMost(ofMinutes(2)).pollInterval(ofSeconds(5)).until({
-            rdsInstancesWorker.runningInstancesStatus()
+        await().atMost(ofMinutes(2)).pollInterval(ofSeconds(5)).until({
+            rdsInstancesManager.runningInstancesStatus()
         }, { it.isNotEmpty() && it.all { it.status != null } })
 
-        runningInstancesStatus.toString()
-        /*
-        assertThat(version.code).isEqualTo(200)
-        assertThat(version.data!!.version).startsWith("SNAPSHOT-")
-         */
-    }
-
-    @Test
-    @Disabled
-    fun testCreateRdsInstanceOld() {
-        assertThat(hetznerApi.hasServer("server1")).isFalse
-        assertThat(hetznerApi.ensureVolume("server1-volume1", HetznerLabels())).isTrue
-        assertThat(
-            hetznerApi.ensureSSHKey(
-                "server1-sshkey1",
-                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM30a1OCQaueS/4U0IKOXs0Z9cozuz+04lPDlZCf8nLS pelle@fry"
-            )
-        ).isTrue
-
-        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "", "server1-sshkey1", HetznerLabels())).isNotNull
-        assertThat(hetznerApi.ensureServer("server1", "server1-volume1", "", "server1-sshkey1", HetznerLabels())).isNotNull
-        assertThat(hetznerApi.hasServer("server1")).isTrue
-        assertThat(hetznerApi.deleteServer("server1")).isTrue
-        assertThat(hetznerApi.hasServer("server1")).isFalse
+        rdsInstancesManager.runningInstancesClients().forEach {
+            val version = it.get<VersionResponse>("/v1/agent/version")
+            assertThat(version.code).isEqualTo(200)
+            assertThat(version.data!!.version).isEqualTo(solidblocksVersion())
+        }
     }
 }

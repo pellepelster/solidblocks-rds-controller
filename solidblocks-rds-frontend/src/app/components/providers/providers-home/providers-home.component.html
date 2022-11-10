@@ -1,23 +1,32 @@
-<div class="container-fluid">
+<div class="d-flex flex-column">
 
-  <h5 class="mt-3 mb-3">
-    Providers
-  </h5>
-
-  <div class="d-flex flex-wrap card-list" style="gap: 1em;">
-
-    <app-providers-list-item [provider]="provider" *ngFor="let provider of providers"></app-providers-list-item>
-
-    <div class="card card-add" style="width: 18rem;">
-      <div class="card-body d-flex justify-content-center align-items-center">
-        <p class="card-text">
-          <a [routerLink]="[{ outlets: { providers: ['create'] } }]">
-            + Add Provider
-          </a>
-        </p>
-      </div>
+  <div class="d-flex flex-row align-items-center justify-content-between component-toolbar">
+    <h5>RDS Instances</h5>
+    <div class="btn-group btn-group-sm align-self-end" role="group" aria-label="Provider Actions">
+      <a class="btn btn-outline-primary btn-sm" [routerLink]="['rds', 'create']">Create RDS Instance</a>
+      <a class="btn btn-outline-danger btn-sm" (click)="delete(provider.id)">Delete Provider</a>
     </div>
-
   </div>
 
-</div>
+  <div class="d-flex flex-wrap card-list mt-3" style="gap: 1em;">
+
+    <table class="table">
+      <thead>
+      <tr>
+        <th scope="col">Name</th>
+      </tr>
+      </thead>
+      <tbody>
+
+      <tr *ngFor="let rdsInstance of rdsInstances">
+        <td class="card bg-white mt-3 mb-2">
+          <a [routerLink]="[ 'rds', rdsInstance.id ]">
+            {{rdsInstance.name}}
+          </a>
+        </td>
+      </tr>
+
+      </tbody>
+    </table>
+
+  </div>

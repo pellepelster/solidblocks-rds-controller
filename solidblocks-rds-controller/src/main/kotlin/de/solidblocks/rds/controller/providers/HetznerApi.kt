@@ -13,7 +13,7 @@ import me.tomsdevsn.hetznercloud.objects.request.SSHKeyRequest
 import me.tomsdevsn.hetznercloud.objects.request.ServerRequest
 import me.tomsdevsn.hetznercloud.objects.request.VolumeRequest
 import mu.KotlinLogging
-import java.util.*
+import org.springframework.web.client.HttpClientErrorException
 
 class HetznerApi(apiToken: String) {
 
@@ -83,7 +83,7 @@ class HetznerApi(apiToken: String) {
 
         logger.info { "creating volume '$name'" }
         val response = hetznerCloudAPI.createVolume(
-            VolumeRequest.builder().location("nbg1").labels(labels.labels()).name(name).size(16).format("xfs").build()
+            VolumeRequest.builder().location("nbg1").labels(labels.labels()).name(name).size(16).format("ext4").build()
         )
 
         return waitForVolumeAction(response.volume, response.action)
@@ -134,7 +134,11 @@ class HetznerApi(apiToken: String) {
         logger.info { "deleting server '$name'" }
         val response = hetznerCloudAPI.deleteServer(server.id)
 
-        return waitForServerAction(server, response.action)
+        return try {
+            waitForServerAction(server, response.action)
+        } catch (_: HttpClientErrorException.NotFound) {
+            true
+        }
     }
 
     data class ServerInfo(val ipAddress: String, val agentPort: Int) {
@@ -144,15 +148,16 @@ class HetznerApi(apiToken: String) {
 
     fun ensureServer(
         serverName: String,
-        volumeName: String,
+        volumeNames: List<String>,
         userData: String,
         sshKeyName: String,
         labels: HetznerLabels
     ): ServerInfo? {
 
-        val volume = getVolume(volumeName)
-        if (volume == null) {
-            logger.error { "volume '$volumeName' not found" }
+        val volumes = volumeNames.map { getVolume(it) }
+
+        if (volumes.any { it == null }) {
+            logger.error { "not all volumes found for '${volumeNames.joinToString(", ")}'" }
             return null
         }
 
@@ -191,20 +196,22 @@ class HetznerApi(apiToken: String) {
             return null
         }
 
-        if (server.volumes.none { it == volume.id }) {
-            val response =
-                hetznerCloudAPI.attachVolumeToServer(
-                    volume.id,
-                    AttachVolumeRequest.builder().serverID(server.id).build()
-                )
-            if (!waitForServerAction(server, response.action)) {
-                logger.error { "attaching volume to server failed for server '$serverName' and volume '${volume.name}'" }
-                return null
-            }
+        volumes.forEach { volume ->
+            if (server.volumes.none { it == volume!!.id }) {
+                val response =
+                    hetznerCloudAPI.attachVolumeToServer(
+                        volume!!.id,
+                        AttachVolumeRequest.builder().serverID(server.id).build()
+                    )
+                if (!waitForServerAction(server, response.action)) {
+                    logger.error { "attaching volume to server failed for server '$serverName' and volume '${volume.name}'" }
+                    return null
+                }
 
-            if (!waitForServerAction(server, hetznerCloudAPI.powerOnServer(server.id).action)) {
-                logger.error { "powering up server '$serverName' failed" }
-                return null
+                if (!waitForServerAction(server, hetznerCloudAPI.powerOnServer(server.id).action)) {
+                    logger.error { "powering up server '$serverName' failed" }
+                    return null
+                }
             }
         }
 

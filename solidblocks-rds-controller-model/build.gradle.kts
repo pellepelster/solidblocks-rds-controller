@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id("de.solidblocks.rds.kotlin-library-conventions")
     id("nu.studer.jooq") version "7.1.1"
@@ -20,6 +22,7 @@ dependencies {
 
     testImplementation(project(":solidblocks-rds-test"))
     testImplementation("org.hamcrest:hamcrest:2.2")
+    implementation(kotlin("stdlib-jdk8"))
 }
 
 jooq {
@@ -50,4 +53,15 @@ jooq {
             }
         }
     }
+}
+repositories {
+    mavenCentral()
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.kotlinOptions {
+    jvmTarget = "1.8"
+}
+val compileTestKotlin: KotlinCompile by tasks
+compileTestKotlin.kotlinOptions {
+    jvmTarget = "1.8"
 }

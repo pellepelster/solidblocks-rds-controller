@@ -2,8 +2,8 @@ package de.solidblocks.rds.controller.model
 
 import de.solidblocks.rds.base.Database
 import de.solidblocks.rds.controller.model.controllers.ControllersRepository
+import de.solidblocks.rds.controller.model.instances.RdsInstanceStatus
 import de.solidblocks.rds.controller.model.instances.RdsInstancesRepository
-import de.solidblocks.rds.controller.model.providers.ProviderStatus
 import de.solidblocks.rds.controller.model.providers.ProvidersRepository
 import de.solidblocks.rds.test.ManagementTestDatabaseExtension
 import org.assertj.core.api.Assertions.assertThat
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
-import java.util.UUID
+import java.util.*
 
 @ExtendWith(ManagementTestDatabaseExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -95,7 +95,7 @@ class RdsInstancesRepositoryTest {
         assertThat(entity.configValues[0].name).isEqualTo("abc")
         assertThat(entity.configValues[0].value).isEqualTo("def")
         assertThat(entity.configValues).hasSize(1)
-        assertThat(entity.status).isEqualTo(ProviderStatus.UNKNOWN)
+        assertThat(entity.status).isEqualTo(RdsInstanceStatus.UNKNOWN)
     }
 
     @Test
@@ -111,23 +111,36 @@ class RdsInstancesRepositoryTest {
     }
 
     @Test
+    fun testCount(database: Database) {
+        val repository = RdsInstancesRepository(database.dsl)
+
+        val currentTotalCount = repository.count()
+        val currentCount = repository.count(providerId)
+
+        repository.create(providerId, "count")
+
+        assertThat(repository.count()).isEqualTo(currentTotalCount + 1)
+        assertThat(repository.count(providerId)).isEqualTo(currentCount + 1)
+    }
+
+    @Test
     fun testUpdateStatus(database: Database) {
         val repository = RdsInstancesRepository(database.dsl)
 
         val created = repository.create(providerId, "update-status")
-        assertThat(created.status).isEqualTo(ProviderStatus.UNKNOWN)
+        assertThat(created.status).isEqualTo(RdsInstanceStatus.UNKNOWN)
 
         val entity = repository.read("update-status")!!
-        assertThat(entity.status).isEqualTo(ProviderStatus.UNKNOWN)
+        assertThat(entity.status).isEqualTo(RdsInstanceStatus.UNKNOWN)
 
-        repository.updateStatus(entity.id, ProviderStatus.ERROR)
+        repository.updateStatus(entity.id, RdsInstanceStatus.ERROR)
 
         val updated = repository.read("update-status")!!
-        assertThat(updated.status).isEqualTo(ProviderStatus.ERROR)
+        assertThat(updated.status).isEqualTo(RdsInstanceStatus.ERROR)
 
         repository.resetStatus()
 
         val afterReset = repository.read("update-status")!!
-        assertThat(afterReset.status).isEqualTo(ProviderStatus.UNKNOWN)
+        assertThat(afterReset.status).isEqualTo(RdsInstanceStatus.UNKNOWN)
     }
 }

@@ -1,9 +1,9 @@
 import {Component} from '@angular/core';
 
 @Component({
-  selector: 'app-providers',
+  selector: 'app-rds-instances',
   template: `
-    <div>
+    <div class="d-flex flex-grow-1">
       <router-outlet></router-outlet>
     </div>
   `

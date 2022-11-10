@@ -5,18 +5,21 @@ import com.github.ajalt.clikt.core.ProgramResult
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.default
 import com.github.ajalt.clikt.parameters.types.path
-import de.solidblocks.rds.agent.AgentHttpServer
 import mu.KotlinLogging
 import java.io.File
 import java.nio.file.Path
 
-class PostgresqlAgent : CliktCommand(name = "postgres") {
+class PostgresqlAgentCommand : CliktCommand(name = "postgres") {
 
     private val logger = KotlinLogging.logger {}
 
-    // val dataDir: Path by argument().path(canBeFile = false, mustExist = true)
+    val dataDir: Path by argument().path(canBeFile = false, mustExist = true).default(
+        Path.of(System.getenv("SOLIDBLOCKS_DATA_DIR") ?: "/storage/data")
+    )
 
-    // val backupDir: Path by argument().path(canBeFile = false, mustExist = true)
+    val backupDir: Path by argument().path(canBeFile = false, mustExist = true).default(
+        Path.of(System.getenv("SOLIDBLOCKS_BACKUP_DIR") ?: "/storage/backup")
+    )
 
     val solidblocksDir: Path by argument().path(canBeFile = false, mustExist = true).default(
         Path.of(System.getenv("SOLIDBLOCKS_DIR") ?: "/solidblocks")
@@ -51,13 +54,14 @@ class PostgresqlAgent : CliktCommand(name = "postgres") {
             throw ProgramResult(2)
         }
 
-        AgentHttpServer(
+        PostgresqlAgent(
             8080,
             File(caPublicKey).readText(),
             File(serverPrivateKey).readText(),
-            File(serverPublicKey).readText()
-        ).waitForShutdown()
+            File(serverPublicKey).readText(),
+            dataDir, backupDir
+        ).waitForShutdownAndExit()
     }
 }
 
-fun main(args: Array<String>) = PostgresqlAgent().main(args)
+fun main(args: Array<String>) = PostgresqlAgentCommand().main(args)

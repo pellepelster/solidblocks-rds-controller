@@ -1,5 +1,7 @@
 package de.solidblocks.rds.controller.utils
 
+import de.solidblocks.rds.controller.utils.Constants.managedByLabel
+import de.solidblocks.rds.controller.utils.Constants.versionLabel
 import de.solidblocks.rds.shared.solidblocksVersion
 import java.lang.RuntimeException
 import java.security.MessageDigest
@@ -13,11 +15,9 @@ class HetznerLabels(hetznerLabels: Map<String, String> = HashMap()) {
     private val MAX_TOTAL_VALUE_LENGTH = MAX_VALUE_LENGTH * 2
 
     init {
-
         mapOf(
-            Constants.managedByLabel to "true",
-            Constants.versionLabel to solidblocksVersion(),
-            Constants.cloudInitChecksumLabel to solidblocksVersion()
+            managedByLabel to "true",
+            versionLabel to solidblocksVersion(),
         ).forEach { (key, value) ->
             safeStore(key, value)
         }

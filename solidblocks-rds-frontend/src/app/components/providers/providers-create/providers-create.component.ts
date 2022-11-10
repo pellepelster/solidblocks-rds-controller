@@ -77,14 +77,14 @@ export class ProvidersWizardStep2Component extends BaseFormComponent implements 
     apiKey: new FormControl('', [
       Validators.required
     ]),
-  });
+  })
 
   constructor(private providersService: ProvidersService, private router: Router, toastService: ToastService) {
     super(toastService);
   }
 
   finish() {
-    this.providersService.create(this.form.value.name, this.form.value.apiKey).subscribe(
+    this.providersService.create(this.form.value.name as string, this.form.value.apiKey as string).subscribe(
       (data) => {
         this.router.navigate(['providers', data.provider.id])
       },

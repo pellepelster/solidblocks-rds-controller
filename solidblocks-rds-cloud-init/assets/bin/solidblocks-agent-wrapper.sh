@@ -5,7 +5,7 @@ set -eu
 DIR="$( cd "$(dirname "$0")" ; pwd -P )"
 
 SOLIDBLOCKS_DIR="${SOLIDBLOCKS_DIR:-/solidblocks}"
-SOLIDBLOCKS_BOOTSTRAP_ADDRESS="${SOLIDBLOCKS_BOOTSTRAP_ADDRESS:-https://maven.pkg.github.com}"
+SOLIDBLOCKS_BOOTSTRAP_ADDRESS="${SOLIDBLOCKS_BOOTSTRAP_ADDRESS:-https://pub-3b1d32d9ecc04ba18ced90b53fc2b338.r2.dev}"
 
 echo "bootstrapping '${SOLIDBLOCKS_AGENT}' from '${SOLIDBLOCKS_BOOTSTRAP_ADDRESS}'"
 
@@ -20,7 +20,7 @@ else
   echo "downloading initial version '${COMPONENT_VERSION}'"
 fi
 
-COMPONENT_URL="${SOLIDBLOCKS_BOOTSTRAP_ADDRESS}/${GITHUB_USERNAME}/solidblocks-rds/solidblocks-rds/${SOLIDBLOCKS_AGENT}/${COMPONENT_VERSION}/${SOLIDBLOCKS_AGENT}-${COMPONENT_VERSION}.tar"
+COMPONENT_URL="${SOLIDBLOCKS_BOOTSTRAP_ADDRESS}/solidblocks-rds-controller/${SOLIDBLOCKS_AGENT}/${COMPONENT_VERSION}/${SOLIDBLOCKS_AGENT}-${COMPONENT_VERSION}.tar"
 COMPONENT_NAME="${SOLIDBLOCKS_AGENT}-${COMPONENT_VERSION}"
 COMPONENT_DISTRIBUTION="${DOWNLOAD_DIR}/${COMPONENT_NAME}.tar"
 
@@ -28,7 +28,7 @@ DOWNLOAD_OPTIONS=""
 SKIP_DOWNLOAD=0
 
 if [ -L "${COMPONENT_ACTIVE}" ] && [ -e "${COMPONENT_ACTIVE}" ]; then
-  if curl -u "${GITHUB_USERNAME}:${GITHUB_PAT}" --silent --location --show-error --fail -o /dev/null "${COMPONENT_URL}"; then
+  if curl --silent --location --show-error --fail -o /dev/null "${COMPONENT_URL}"; then
     echo "download url '${COMPONENT_URL}' exists and active component found, trying download with fallback to active version"
    DOWNLOAD_OPTIONS="--fail"
   else
@@ -37,12 +37,10 @@ if [ -L "${COMPONENT_ACTIVE}" ] && [ -e "${COMPONENT_ACTIVE}" ]; then
   fi
 fi
 
-echo curl -u "${GITHUB_USERNAME}:${GITHUB_PAT}" ${DOWNLOAD_OPTIONS} --retry 25 --retry-connrefused --location --show-error "${COMPONENT_URL}"
-
 if [[ ${SKIP_DOWNLOAD} -eq 0 ]]; then
   echo "downloading '${COMPONENT_URL}' to '${COMPONENT_DISTRIBUTION}'"
   echo "------------------------------------------------------------------------------------------"
-  while ! curl -u "${GITHUB_USERNAME}:${GITHUB_PAT}" ${DOWNLOAD_OPTIONS} --retry 25 --retry-connrefused --location --show-error "${COMPONENT_URL}" > "${COMPONENT_DISTRIBUTION}"; do
+  while ! curl ${DOWNLOAD_OPTIONS} --retry 25 --retry-connrefused --location --show-error "${COMPONENT_URL}" > "${COMPONENT_DISTRIBUTION}"; do
       echo "download failed, retrying"
       sleep 10
   done

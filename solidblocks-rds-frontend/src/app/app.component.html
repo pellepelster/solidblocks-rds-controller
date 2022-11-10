@@ -1,5 +1,14 @@
-<app-navigation></app-navigation>
+<div class="container-fluid min-vh-100 d-flex flex-column">
 
-<router-outlet></router-outlet>
+  <div class="row">
+    <div class="col">
+      <app-navigation></app-navigation>
+    </div>
+  </div>
+
+  <router-outlet></router-outlet>
+
+</div>
+
 
 <app-toasts aria-live="polite" aria-atomic="true"></app-toasts>

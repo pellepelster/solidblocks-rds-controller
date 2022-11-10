@@ -1,10 +1,12 @@
 package de.solidblocks.rds.postgresql.agent
 
-import de.solidblocks.rds.agent.BaseAgentApiClient
 import de.solidblocks.rds.agent.LinuxCommandExecutor
+import de.solidblocks.rds.agent.MtlsHttpClient
+import de.solidblocks.rds.agent.initWorldReadableTempDir
 import de.solidblocks.rds.base.Utils
-import de.solidblocks.rds.shared.SharedConstants
-import de.solidblocks.rds.shared.SharedConstants.githubUsername
+import de.solidblocks.rds.shared.dto.TriggerUpdateRequest
+import de.solidblocks.rds.shared.dto.TriggerUpdateResponse
+import de.solidblocks.rds.shared.dto.VersionResponse
 import mu.KotlinLogging
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.kotlin.*
@@ -33,10 +35,10 @@ class AgentWrapperProcess(solidblocksDirectory: Path, solidblocksVersion: String
                 printStream = true,
                 environment = mapOf(
                     "SOLIDBLOCKS_DIR" to solidblocksDirectory.toString(),
+                    "SOLIDBLOCKS_DATA_DIR" to initWorldReadableTempDir("data-dir").absolutePath,
+                    "SOLIDBLOCKS_BACKUP_DIR" to initWorldReadableTempDir("backup-dir").absolutePath,
                     "SOLIDBLOCKS_AGENT" to "solidblocks-rds-postgresql-agent",
                     "SOLIDBLOCKS_VERSION" to solidblocksVersion,
-                    "GITHUB_USERNAME" to githubUsername,
-                    "GITHUB_PAT" to SharedConstants.githubPat,
                     "SOLIDBLOCKS_BOOTSTRAP_ADDRESS" to solidblocksBootstrapAddress
                 ),
                 workingDir = File(workingDir),
@@ -54,7 +56,7 @@ class AgentWrapperProcess(solidblocksDirectory: Path, solidblocksVersion: String
     }
 }
 
-class RdsAgentIntegrationTest {
+class RdsPostgresqlAgentIntegrationTest {
 
     private val logger = KotlinLogging.logger {}
 
@@ -67,11 +69,11 @@ class RdsAgentIntegrationTest {
     val clientKeyPair = Utils.createCertificate(clientCa.privateKey, clientCa.publicKey)
 
     private val blueVersion =
-        RdsAgentIntegrationTest::class.java.getResource("/rds-postgresql-agent/bootstrap/artefacts/blue.version")
+        RdsPostgresqlAgentIntegrationTest::class.java.getResource("/rds-postgresql-agent/bootstrap/artefacts/blue.version")
             .readText().trim()
 
     private val greenVersion =
-        RdsAgentIntegrationTest::class.java.getResource("/rds-postgresql-agent/bootstrap/artefacts/green.version")
+        RdsPostgresqlAgentIntegrationTest::class.java.getResource("/rds-postgresql-agent/bootstrap/artefacts/green.version")
             .readText().trim()
 
     @Test
@@ -85,7 +87,6 @@ class RdsAgentIntegrationTest {
                     mapOf(
                         "SOLIDBLOCKS_BLUE_VERSION" to blueVersion,
                         "SOLIDBLOCKS_GREEN_VERSION" to greenVersion,
-                        "GITHUB_USERNAME" to githubUsername
                     )
                 )
                 withExposedService("bootstrap", 80)
@@ -102,19 +103,24 @@ class RdsAgentIntegrationTest {
             "http://localhost:${dockerEnvironment.getServicePort("bootstrap", 80)}"
         )
 
-        val client = BaseAgentApiClient(
+        val client = MtlsHttpClient(
             "https://localhost:8080", serverCa.publicKey, clientKeyPair.privateKey, clientKeyPair.publicKey
         )
 
         await ignoreException (ConnectException::class) until {
-            client.version() != null
+            client.get<VersionResponse>("/v1/agent/version").isSuccessful
         }
 
-        assertThat(client.version()?.version).isEqualTo(blueVersion)
-        assertThat(client.triggerUpdate(greenVersion)).isTrue
+        assertThat(client.get<VersionResponse>("/v1/agent/version").data!!.version).isEqualTo(blueVersion)
+        assertThat(
+            client.post<TriggerUpdateResponse>(
+                "/v1/agent/trigger-update",
+                TriggerUpdateRequest(greenVersion)
+            ).isSuccessful
+        ).isTrue
 
         await atMost (Duration.ofSeconds(15)) ignoreException (ConnectException::class) untilAsserted {
-            assertThat(client.version()?.version).isEqualTo(greenVersion)
+            assertThat(client.get<VersionResponse>("/v1/agent/version").data!!.version).isEqualTo(greenVersion)
         }
     }
 
@@ -129,7 +135,6 @@ class RdsAgentIntegrationTest {
                     mapOf(
                         "SOLIDBLOCKS_BLUE_VERSION" to blueVersion,
                         "SOLIDBLOCKS_GREEN_VERSION" to greenVersion,
-                        "GITHUB_USERNAME" to githubUsername
                     )
                 )
                 withExposedService("bootstrap", 80)
@@ -140,21 +145,30 @@ class RdsAgentIntegrationTest {
             blueVersion, clientCa.publicKey, serverKeyPair.privateKey, serverKeyPair.publicKey, dockerEnvironment
         )
 
-        agentWrapperProcess = AgentWrapperProcess(solidblocksDirectory, blueVersion, "http://localhost:${dockerEnvironment.getServicePort("bootstrap", 80)}")
+        agentWrapperProcess = AgentWrapperProcess(
+            solidblocksDirectory,
+            blueVersion,
+            "http://localhost:${dockerEnvironment.getServicePort("bootstrap", 80)}"
+        )
 
-        val client = BaseAgentApiClient(
+        val client = MtlsHttpClient(
             "https://localhost:8080", serverCa.publicKey, clientKeyPair.privateKey, clientKeyPair.publicKey
         )
 
         await ignoreException (ConnectException::class) until {
-            client.version() != null
+            client.get<VersionResponse>("/v1/agent/version").isSuccessful
         }
 
-        assertThat(client.version()?.version).isEqualTo(blueVersion)
-        assertThat(client.triggerUpdate("invalid-version")).isTrue
+        assertThat(client.get<VersionResponse>("/v1/agent/version").data!!.version).isEqualTo(blueVersion)
+        assertThat(
+            client.post<TriggerUpdateResponse>(
+                "/v1/agent/trigger-update",
+                TriggerUpdateRequest("invalid-version")
+            ).isSuccessful
+        ).isTrue
 
         await withPollDelay (Duration.ofSeconds(20)) atMost (Duration.ofSeconds(25)) ignoreException (ConnectException::class) untilAsserted {
-            assertThat(client.version()?.version).isEqualTo(blueVersion)
+            assertThat(client.get<VersionResponse>("/v1/agent/version").data!!.version).isEqualTo(blueVersion)
         }
     }
 
