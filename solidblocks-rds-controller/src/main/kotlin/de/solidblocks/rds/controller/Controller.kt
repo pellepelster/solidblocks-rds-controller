@@ -8,6 +8,8 @@ import de.solidblocks.rds.controller.instances.api.RdsInstancesApi
 import de.solidblocks.rds.controller.model.controllers.ControllersRepository
 import de.solidblocks.rds.controller.model.instances.RdsInstancesRepository
 import de.solidblocks.rds.controller.model.providers.ProvidersRepository
+import de.solidblocks.rds.controller.model.status.StatusManager
+import de.solidblocks.rds.controller.model.status.StatusRepository
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import de.solidblocks.rds.controller.providers.api.ProvidersApi
 import mu.KotlinLogging
@@ -24,14 +26,19 @@ class Controller(database: Database) {
 
     private val controllersRepository = ControllersRepository(database.dsl)
 
+    private val statusRepository = StatusRepository(database.dsl)
+
     private val rdsScheduler = RdsScheduler(database)
 
     private val controllersManager = ControllersManager(controllersRepository)
 
-    private val providersManager = ProvidersManager(providersRepository, rdsInstancesRepository, controllersManager, rdsScheduler)
+    private val statusManager = StatusManager(statusRepository)
+
+    private val providersManager =
+        ProvidersManager(providersRepository, rdsInstancesRepository, controllersManager, rdsScheduler, statusManager)
 
     private val instancesManager =
-        RdsInstancesManager(rdsInstancesRepository, providersManager, controllersManager, rdsScheduler)
+        RdsInstancesManager(rdsInstancesRepository, providersManager, controllersManager, rdsScheduler, statusManager)
 
     private val executor = DefaultLockingTaskExecutor(JdbcLockProvider(database.datasource))
 

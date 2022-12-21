@@ -13,11 +13,10 @@ import de.solidblocks.rds.controller.api.MessagesResponse
 import de.solidblocks.rds.controller.controllers.ControllersManager
 import de.solidblocks.rds.controller.instances.api.RdsInstanceCreateRequest
 import de.solidblocks.rds.controller.instances.api.RdsInstanceResponse
-import de.solidblocks.rds.controller.model.Constants.SERVER_PRIVATE_KEY
-import de.solidblocks.rds.controller.model.Constants.SERVER_PUBLIC_KEY
 import de.solidblocks.rds.controller.model.instances.RdsInstanceEntity
-import de.solidblocks.rds.controller.model.instances.RdsInstanceStatus
 import de.solidblocks.rds.controller.model.instances.RdsInstancesRepository
+import de.solidblocks.rds.controller.model.status.Status
+import de.solidblocks.rds.controller.model.status.StatusManager
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import de.solidblocks.rds.controller.utils.Constants
 import de.solidblocks.rds.controller.utils.Constants.backup1VolumeName
@@ -40,15 +39,22 @@ class RdsInstancesManager(
     private val repository: RdsInstancesRepository,
     private val providersManager: ProvidersManager,
     private val controllersManager: ControllersManager,
-    private val rdsScheduler: RdsScheduler
+    private val rdsScheduler: RdsScheduler,
+    private val statusManager: StatusManager
 ) {
 
     private val logger = KotlinLogging.logger {}
 
-    private var applyTask = Tasks.oneTime(
+    private var instanceApplyTask = Tasks.oneTime(
         "rds-instances-apply-task", RdsInstanceEntity::class.java
     ).execute { inst: TaskInstance<RdsInstanceEntity>, ctx: ExecutionContext ->
-        apply(inst.data)
+        applyInstance(inst.data)
+    }
+
+    private var instanceConfigTask = Tasks.oneTime(
+        "rds-instances-config-task", RdsInstanceEntity::class.java
+    ).execute { inst: TaskInstance<RdsInstanceEntity>, ctx: ExecutionContext ->
+        configureInstance(inst.data)
     }
 
     private var healthcheckTask = Tasks.recurring("rds-instances-healthcheck-task", FixedDelay.ofSeconds(15))
@@ -59,21 +65,21 @@ class RdsInstancesManager(
 
                 if (api == null) {
                     logger.info { "could not create api for rds instance '${rdsInstance.name}'" }
-                    repository.updateStatus(rdsInstance.id, RdsInstanceStatus.ERROR)
+                    statusManager.update(rdsInstance.id, Status.ERROR)
                 } else {
 
                     val serverInfo = api.serverInfo(serverName(rdsInstance))
 
                     if (serverInfo == null) {
-                        repository.updateStatus(rdsInstance.id, RdsInstanceStatus.ERROR)
+                        statusManager.update(rdsInstance.id, Status.ERROR)
                     } else {
 
                         if (HealthChecks.checkPort(InetSocketAddress(serverInfo.ipAddress, serverInfo.agentPort))) {
                             logger.info { "rds instance '${rdsInstance.name}' is healthy" }
-                            repository.updateStatus(rdsInstance.id, RdsInstanceStatus.HEALTHY)
+                            statusManager.update(rdsInstance.id, Status.HEALTHY)
                         } else {
                             logger.info { "rds instance '${rdsInstance.name}' is unhealthy" }
-                            repository.updateStatus(rdsInstance.id, RdsInstanceStatus.UNHEALTHY)
+                            statusManager.update(rdsInstance.id, Status.UNHEALTHY)
                         }
                     }
                 }
@@ -81,21 +87,21 @@ class RdsInstancesManager(
         }
 
     init {
-        rdsScheduler.addOneTimeTask(applyTask)
+        rdsScheduler.addOneTimeTask(instanceApplyTask)
         rdsScheduler.addRecurringTask(healthcheckTask)
     }
 
     fun read(id: UUID) = repository.read(id)?.let {
-        RdsInstanceResponse(it.id, it.name, it.provider, it.status)
+        RdsInstanceResponse(it.id, it.name, it.provider)
     }
+
+    fun readInternal(id: UUID) = repository.read(id)
 
     fun delete(id: UUID) = repository.delete(id)
 
     fun list() = repository.list().map {
-        RdsInstanceResponse(it.id, it.name, it.provider, it.status)
+        RdsInstanceResponse(it.id, it.name, it.provider)
     }
-
-    fun listInternal() = repository.list()
 
     fun validate(request: RdsInstanceCreateRequest): MessagesResponse {
 
@@ -114,53 +120,62 @@ class RdsInstancesManager(
         val controller = controllersManager.readInternal(provider.controller)
             ?: return CreationResult.error("controller '${provider.controller}' not found")
 
-        val serverKeyPair = Utils.createCertificate(controller.caServerPrivateKey(), controller.caServerPublicKey())
+        val serverKeyPair = Utils.createCertificate(controller.caServerPrivateKey, controller.caServerPublicKey)
 
         val entity = repository.create(
             request.provider, request.name,
-            mapOf(
-                SERVER_PRIVATE_KEY to serverKeyPair.privateKey,
-                SERVER_PUBLIC_KEY to serverKeyPair.publicKey,
-            )
+            request.username,
+            request.password,
+            serverKeyPair.privateKey,
+            serverKeyPair.publicKey,
         )
 
         scheduleApplyTask(entity)
 
         return CreationResult(
             entity.let {
-                RdsInstanceResponse(it.id, it.name, it.provider, it.status)
+                RdsInstanceResponse(it.id, it.name, it.provider)
             }
         )
     }
 
     fun runningInstances(): List<RunningInstanceInfo> {
-        return listInternal().map { rdsInstance ->
-            val hetznerApi = providersManager.createProviderApi(rdsInstance.provider) ?: run {
-                logger.info { "could not create provider instance for rds instance '${rdsInstance.id}'" }
-                return@map null
-            }
-
-            return@map rdsInstance.id to hetznerApi
-        }.filterNotNull().flatMap {
-            it.second.allManagedServers().map { server ->
-                RunningInstanceInfo(it.first, server.publicNet.ipv4.ip)
-            }
+        return repository.list().mapNotNull {
+            runningInstanceInfo(it.id)
         }
     }
 
-    fun runningInstancesClients() = runningInstances().map {
+    fun runningInstanceInfo(id: UUID): RunningInstanceInfo? {
+        val rdsInstance = repository.read(id) ?: return null
 
-        val instance = read(it.instanceId) ?: return@map null
-        val provider = providersManager.read(instance.provider) ?: return@map null
-        val controller = controllersManager.readInternal(provider.controller) ?: return@map null
+        val hetznerApi = providersManager.createProviderApi(rdsInstance.provider) ?: run {
+            logger.info { "could not create provider instance for rds instance '${rdsInstance.id}'" }
+            return null
+        }
 
-        MtlsHttpClient(
-            "https://${it.ipAddress}:8080",
-            controller.caServerPublicKey(),
-            controller.caClientPrivateKey(),
-            controller.caClientPublicKey()
+        val server = hetznerApi.getServer(serverName(rdsInstance)) ?: return null
+
+        return RunningInstanceInfo(rdsInstance.id, server.publicNet.ipv4.ip)
+    }
+
+    fun runningInstancesClients() = runningInstances().mapNotNull {
+        createHttpClient(it.instanceId)
+    }
+
+    private fun createHttpClient(id: UUID): MtlsHttpClient? {
+        val instance = read(id) ?: return null
+        val provider = providersManager.read(instance.provider) ?: return null
+        val controller = controllersManager.readInternal(provider.controller) ?: return null
+
+        val instanceInfo = runningInstanceInfo(id) ?: return null
+
+        return MtlsHttpClient(
+            "https://${instanceInfo.ipAddress}:8080",
+            controller.caServerPublicKey,
+            controller.caClientPrivateKey,
+            controller.caClientPublicKey
         )
-    }.filterNotNull()
+    }
 
     fun runningInstancesStatus() = runningInstancesClients().map {
         try {
@@ -175,13 +190,27 @@ class RdsInstancesManager(
         return@map RunningInstanceStatus()
     }
 
-    fun applyAll(): Boolean {
-        return listInternal().map {
-            apply(it)
-        }.any { it }
+    fun ensureAll(): Boolean {
+        return repository.list().map {
+            if (diff(it)) {
+                scheduleApplyTask(it)
+            } else {
+                true
+            }
+        }.all { it }
     }
 
-    private fun apply(rdsInstance: RdsInstanceEntity): Boolean {
+    private fun diff(rdsInstance: RdsInstanceEntity): Boolean {
+        val api = providersManager.createProviderApi(rdsInstance.provider) ?: return false
+
+        if (!api.hasServer(serverName(rdsInstance))) {
+            return true
+        }
+
+        return false
+    }
+
+    private fun applyInstance(rdsInstance: RdsInstanceEntity): Boolean {
         logger.info { "starting work for rds instance '${rdsInstance.name} (${rdsInstance.id})'" }
 
         val hetznerApi = providersManager.createProviderApi(rdsInstance.provider) ?: run {
@@ -226,26 +255,42 @@ class RdsInstancesManager(
             hetznerApi.getVolume(data1VolumeName)!!.linuxDevice,
             hetznerApi.getVolume(backup1VolumeName)!!.linuxDevice,
             serverName,
-            controller.caClientPublicKey(),
-            rdsInstance.serverPrivateKey(),
-            rdsInstance.serverPublicKey(),
+            controller.caClientPublicKey,
+            rdsInstance.serverPrivateKey,
+            rdsInstance.serverPublicKey,
             "solidblocks-rds-postgresql-agent"
         )
 
         hetznerApi.ensureServer(serverName, listOf(data1VolumeName, backup1VolumeName), cloudInit, sshKeyName, labels)
             ?: run {
                 logger.info {
-                    "could not server '$serverName' for rds instance '${rdsInstance.name}'"
+                    "could not ensure server '$serverName' for rds instance '${rdsInstance.name}'"
                 }
 
                 return false
             }
 
+        scheduleConfigureTask(rdsInstance)
         return true
     }
 
-    private fun scheduleApplyTask(instance: RdsInstanceEntity) {
+    private fun configureInstance(rdsInstance: RdsInstanceEntity): Boolean {
+
+        val client = createHttpClient(rdsInstance.id) ?: return false
+
+        return true
+    }
+
+    private fun scheduleApplyTask(instance: RdsInstanceEntity): Boolean {
         logger.info { "scheduling apply for rds instance '${instance.name}'" }
-        rdsScheduler.scheduleTask(applyTask.instance(UUID.randomUUID().toString(), instance))
+        rdsScheduler.scheduleTask(instanceApplyTask.instance(UUID.randomUUID().toString(), instance))
+
+        return true
+    }
+
+    private fun scheduleConfigureTask(instance: RdsInstanceEntity): Boolean {
+        logger.info { "scheduling configure for rds instance '${instance.name}'" }
+        rdsScheduler.scheduleTask(instanceConfigTask.instance(UUID.randomUUID().toString(), instance))
+        return true
     }
 }

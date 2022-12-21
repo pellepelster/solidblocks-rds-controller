@@ -138,11 +138,6 @@ databaseChangeLog:
                   constraints:
                     nullable: false
               - column:
-                  name: status
-                  type: varchar(256)
-                  constraints:
-                    nullable: false
-              - column:
                   name: deleted
                   type: boolean
                   constraints:
@@ -174,11 +169,6 @@ databaseChangeLog:
                     references: providers(id)
               - column:
                   name: name
-                  type: varchar(256)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: status
                   type: varchar(256)
                   constraints:
                     nullable: false
@@ -241,3 +231,35 @@ databaseChangeLog:
                     nullable: true
                     foreignKeyName: fk_configuration_values_provider
                     references: providers(id)
+
+        - createTable:
+            tableName: status
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: entity
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_time
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            columns:
+              - column:
+                  name: id
+            indexName: status_id
+            tableName: status
+            unique: true

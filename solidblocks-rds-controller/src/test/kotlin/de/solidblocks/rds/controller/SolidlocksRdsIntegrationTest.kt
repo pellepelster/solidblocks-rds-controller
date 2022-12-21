@@ -7,14 +7,14 @@ import de.solidblocks.rds.controller.instances.api.RdsInstanceCreateRequest
 import de.solidblocks.rds.controller.model.controllers.ControllersRepository
 import de.solidblocks.rds.controller.model.instances.RdsInstancesRepository
 import de.solidblocks.rds.controller.model.providers.ProvidersRepository
+import de.solidblocks.rds.controller.model.status.StatusManager
+import de.solidblocks.rds.controller.model.status.StatusRepository
 import de.solidblocks.rds.controller.providers.HetznerApi
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import de.solidblocks.rds.controller.providers.api.ProviderCreateRequest
 import de.solidblocks.rds.shared.dto.VersionResponse
 import de.solidblocks.rds.shared.solidblocksVersion
-import de.solidblocks.rds.test.ManagementTestDatabaseExtension
-import io.mockk.justRun
-import io.mockk.mockk
+import de.solidblocks.rds.test.TestDatabaseExtension
 import me.tomsdevsn.hetznercloud.HetznerCloudAPI
 import mu.KotlinLogging
 import org.assertj.core.api.Assertions.assertThat
@@ -29,7 +29,7 @@ import kotlin.io.path.exists
 import kotlin.io.path.readText
 
 @EnabledIfEnvironmentVariable(named = "HCLOUD_TOKEN", matches = ".*")
-@ExtendWith(ManagementTestDatabaseExtension::class)
+@ExtendWith(TestDatabaseExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class SolidlocksRdsIntegrationTest {
 
@@ -67,34 +67,39 @@ class SolidlocksRdsIntegrationTest {
 
     @Test
     fun testCreateRdsInstance(database: Database) {
-
-        val rdsScheduler = mockk<RdsScheduler>()
-        justRun { rdsScheduler.addOneTimeTask(any()) }
-        justRun { rdsScheduler.addRecurringTask(any()) }
-        justRun { rdsScheduler.scheduleTask(any()) }
+        val rdsScheduler = RdsScheduler(database)
+        val statusManager = StatusManager(StatusRepository(database.dsl))
 
         val controllersManager = ControllersManager(ControllersRepository(database.dsl))
         val providersManager = ProvidersManager(
             ProvidersRepository(database.dsl),
             RdsInstancesRepository(database.dsl),
             controllersManager,
-            rdsScheduler
+            rdsScheduler,
+            statusManager
         )
 
         val rdsInstancesManager = RdsInstancesManager(
             RdsInstancesRepository(database.dsl),
             providersManager,
             controllersManager,
-            rdsScheduler
+            rdsScheduler,
+            statusManager
         )
+
+        rdsScheduler.start()
 
         val provider =
             providersManager.create(ProviderCreateRequest(name = "hetzner1", apiKey = System.getenv("HCLOUD_TOKEN")))
-        rdsInstancesManager.create(RdsInstanceCreateRequest(name = "rds-instance1", provider.data!!.id))
 
-        assertThat(providersManager.applyAll()).isTrue
-        assertThat(rdsInstancesManager.applyAll()).isTrue
-
+        rdsInstancesManager.create(
+            RdsInstanceCreateRequest(
+                name = "rds-instance1",
+                username = "user1",
+                password = "password1",
+                provider = provider.data!!.id
+            )
+        )
         await().atMost(ofMinutes(2)).pollInterval(ofSeconds(5)).until({
             rdsInstancesManager.runningInstancesStatus()
         }, { it.isNotEmpty() && it.all { it.status != null } })

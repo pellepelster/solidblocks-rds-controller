@@ -2,7 +2,10 @@ package de.solidblocks.rds.controller.model.instances
 
 import de.solidblocks.rds.controller.model.BaseRepository
 import de.solidblocks.rds.controller.model.CloudConfigValue
-import de.solidblocks.rds.controller.model.providers.ProviderStatus
+import de.solidblocks.rds.controller.model.Constants.PASSWORD
+import de.solidblocks.rds.controller.model.Constants.SERVER_PRIVATE_KEY
+import de.solidblocks.rds.controller.model.Constants.SERVER_PUBLIC_KEY
+import de.solidblocks.rds.controller.model.Constants.USERNAME
 import de.solidblocks.rds.controller.model.tables.references.CONFIGURATION_VALUES
 import de.solidblocks.rds.controller.model.tables.references.RDS_INSTANCES
 import org.jooq.Condition
@@ -13,30 +16,36 @@ class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
 
     private val rdsInstances = RDS_INSTANCES.`as`("rds_instances")
 
-    init {
-        resetStatus()
-    }
-
     fun create(
         providerId: UUID,
         name: String,
+        username: String,
+        password: String,
+        sshPrivateKey: String,
+        sshPublicKey: String,
         configValues: Map<String, String> = emptyMap()
-    ): RdsInstanceEntity {
+    ) = dsl.transactionResult { _ ->
         val id = UUID.randomUUID()
 
         dsl.insertInto(RDS_INSTANCES).columns(
             RDS_INSTANCES.ID,
             RDS_INSTANCES.NAME,
             RDS_INSTANCES.PROVIDER,
-            RDS_INSTANCES.STATUS,
             RDS_INSTANCES.DELETED
-        ).values(id, name, providerId, ProviderStatus.UNKNOWN.toString(), false).execute()
+        ).values(id, name, providerId, false).execute()
 
-        configValues.forEach {
+        (
+            configValues + mapOf(
+                USERNAME to username,
+                PASSWORD to password,
+                SERVER_PRIVATE_KEY to sshPrivateKey,
+                SERVER_PUBLIC_KEY to sshPublicKey,
+            )
+            ).forEach {
             setConfiguration(RdsInstanceId(id), it.key, it.value)
         }
 
-        return read(id) ?: run { throw RuntimeException("could not read created rds instance") }
+        read(id) ?: run { throw RuntimeException("could not read created rds instance") }
     }
 
     fun count() = dsl.fetchCount(rdsInstances)
@@ -61,7 +70,6 @@ class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
                 id = it.key.id!!,
                 name = it.key.name!!,
                 provider = it.key.provider!!,
-                status = RdsInstanceStatus.valueOf(it.key.status!!),
                 configValues = it.value.map {
                     if (it.getValue(CONFIGURATION_VALUES.KEY_) == null) {
                         null
@@ -114,12 +122,4 @@ class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
         key: String,
         value: String
     ) = setConfiguration(RdsInstanceId(id), key, value)
-
-    fun updateStatus(id: UUID, status: RdsInstanceStatus) =
-        dsl.update(rdsInstances).set(rdsInstances.STATUS, status.toString()).where(rdsInstances.ID.eq(id))
-            .execute() == 1
-
-    fun resetStatus() {
-        dsl.update(rdsInstances).set(rdsInstances.STATUS, ProviderStatus.UNKNOWN.toString()).execute()
-    }
 }

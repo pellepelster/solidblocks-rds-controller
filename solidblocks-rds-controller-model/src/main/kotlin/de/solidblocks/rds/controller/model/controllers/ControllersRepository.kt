@@ -15,7 +15,7 @@ class ControllersRepository(dsl: DSLContext) : BaseRepository(dsl) {
     fun create(
         name: String,
         configValues: Map<String, String> = emptyMap()
-    ): ControllerEntity {
+    ) = dsl.transactionResult { _ ->
         val id = UUID.randomUUID()
 
         dsl.insertInto(controllers).columns(
@@ -26,7 +26,7 @@ class ControllersRepository(dsl: DSLContext) : BaseRepository(dsl) {
             setConfiguration(ControllerInstanceId(id), it.key, it.value)
         }
 
-        return read(id) ?: run { throw RuntimeException("could not read created controller") }
+        read(id) ?: run { throw RuntimeException("could not read created controller") }
     }
 
     fun list(filter: Condition? = null): List<ControllerEntity> {
@@ -60,10 +60,12 @@ class ControllersRepository(dsl: DSLContext) : BaseRepository(dsl) {
     }
 
     fun exists(name: String): Boolean {
-        return dsl.selectFrom(CONTROLLERS).where(CONTROLLERS.NAME.eq(name).and(CONTROLLERS.DELETED.isFalse)).count() == 1
+        return dsl.selectFrom(CONTROLLERS).where(CONTROLLERS.NAME.eq(name).and(CONTROLLERS.DELETED.isFalse))
+            .count() == 1
     }
 
-    fun delete(id: UUID) = dsl.update(CONTROLLERS).set(CONTROLLERS.DELETED, true).where(CONTROLLERS.ID.eq(id)).execute() == 1
+    fun delete(id: UUID) =
+        dsl.update(CONTROLLERS).set(CONTROLLERS.DELETED, true).where(CONTROLLERS.ID.eq(id)).execute() == 1
 
     fun update(id: UUID, values: Map<String, String>): Boolean {
         return values.map {

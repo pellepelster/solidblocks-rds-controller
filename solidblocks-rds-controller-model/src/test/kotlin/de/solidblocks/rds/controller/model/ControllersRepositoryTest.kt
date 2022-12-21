@@ -2,13 +2,13 @@ package de.solidblocks.rds.controller.model
 
 import de.solidblocks.rds.base.Database
 import de.solidblocks.rds.controller.model.controllers.ControllersRepository
-import de.solidblocks.rds.test.ManagementTestDatabaseExtension
+import de.solidblocks.rds.test.TestDatabaseExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.extension.ExtendWith
 
-@ExtendWith(ManagementTestDatabaseExtension::class)
+@ExtendWith(TestDatabaseExtension::class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ControllersRepositoryTest {
 

@@ -30,7 +30,7 @@ class RdsScheduler(private val database: Database) {
     fun scheduleTask(task: TaskInstance<out Any>) {
 
         if (scheduler == null) {
-            throw RuntimeException("scheduler is no started")
+            throw RuntimeException("scheduler is not started")
         }
 
         scheduler!!.schedule(task, Instant.now().plusSeconds(5))

@@ -8,6 +8,9 @@ object Constants {
     const val SERVER_PUBLIC_KEY = "server_public_key"
     const val SERVER_PRIVATE_KEY = "server_private_key"
 
+    const val USERNAME = "username"
+    const val PASSWORD = "password"
+
     const val CA_CLIENT_PUBLIC_KEY = "ca_client_public_key"
     const val CA_CLIENT_PRIVATE_KEY = "ca_client_private_key"
 

@@ -7,11 +7,11 @@ import org.junit.jupiter.api.extension.ParameterContext
 import org.junit.jupiter.api.extension.ParameterResolver
 import java.util.*
 
-class ManagementTestDatabaseExtension : ParameterResolver, BeforeAllCallback {
+class TestDatabaseExtension : ParameterResolver, BeforeAllCallback {
 
-    private val TEST_DB_JDBC_URL get() = "jdbc:derby:memory:${UUID.randomUUID()};create=true"
+    private val testJdbcUrl get() = "jdbc:derby:memory:${UUID.randomUUID()};create=true"
 
-    private val database: Database = Database(TEST_DB_JDBC_URL)
+    private val database: Database = Database(testJdbcUrl)
 
     override fun beforeAll(context: ExtensionContext) {
         database.ensureDBSchema()
