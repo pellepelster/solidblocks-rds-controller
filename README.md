@@ -35,7 +35,13 @@ This repository contains a prototype of a AWS-like RDS service intended for loca
 
 * agent can run without the controller attached
 * communication between controller and agent is secured via mutual TLS
-
+* controller -> provider -> instance -> configuration
+* no non-db state
+* apply/ensure/diff
+* control loops
+* manager vs repository
+* eventual everything
+* 
 ![architecture 1](doc/architecture1.png)
 
 ### Stuff
@@ -45,3 +51,4 @@ This repository contains a prototype of a AWS-like RDS service intended for loca
 * check for duplicate api keys
 * verify delete
   * check for resources
+* data model madness

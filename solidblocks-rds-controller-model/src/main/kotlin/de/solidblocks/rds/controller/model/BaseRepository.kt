@@ -1,5 +1,6 @@
 package de.solidblocks.rds.controller.model
 
+import de.solidblocks.rds.controller.model.entities.*
 import de.solidblocks.rds.controller.model.tables.records.ConfigurationValuesRecord
 import de.solidblocks.rds.controller.model.tables.references.CONFIGURATION_VALUES
 import org.jooq.DSLContext
@@ -10,14 +11,6 @@ import org.jooq.impl.DSL
 import java.util.*
 
 abstract class BaseRepository(val dsl: DSLContext) {
-
-    sealed class IdType(private val id: UUID)
-
-    protected class ProviderId(val id: UUID) : IdType(id)
-
-    protected class RdsInstanceId(val id: UUID) : IdType(id)
-
-    protected class ControllerInstanceId(val id: UUID) : IdType(id)
 
     protected fun latestConfigurationValuesQuery(referenceColumn: TableField<ConfigurationValuesRecord, UUID?>): Table<Record5<UUID?, UUID?, String?, String?, Int?>> {
 
@@ -49,18 +42,21 @@ abstract class BaseRepository(val dsl: DSLContext) {
 
         var providerId: UUID? = null
         var rdsInstanceId: UUID? = null
+        var rdsConfigurationId: UUID? = null
         var controllerId: UUID? = null
 
         when (id) {
             is ProviderId -> providerId = id.id
             is RdsInstanceId -> rdsInstanceId = id.id
-            is ControllerInstanceId -> controllerId = id.id
+            is RdsConfigurationId -> rdsConfigurationId = id.id
+            is ControllerId -> controllerId = id.id
         }
 
         val condition = when (id) {
             is ProviderId -> CONFIGURATION_VALUES.PROVIDER.eq(id.id)
             is RdsInstanceId -> CONFIGURATION_VALUES.RDS_INSTANCE.eq(id.id)
-            is ControllerInstanceId -> CONFIGURATION_VALUES.CONTROLLER.eq(id.id)
+            is RdsConfigurationId -> CONFIGURATION_VALUES.RDS_CONFIGURATION.eq(id.id)
+            is ControllerId -> CONFIGURATION_VALUES.CONTROLLER.eq(id.id)
         }
 
         // unfortunately derby does not support limits .limit(1).offset(0)
@@ -71,16 +67,17 @@ abstract class BaseRepository(val dsl: DSLContext) {
         val result = dsl.insertInto(CONFIGURATION_VALUES).columns(
             CONFIGURATION_VALUES.ID,
             CONFIGURATION_VALUES.VERSION,
+            CONFIGURATION_VALUES.CONTROLLER,
             CONFIGURATION_VALUES.PROVIDER,
             CONFIGURATION_VALUES.RDS_INSTANCE,
-            CONFIGURATION_VALUES.CONTROLLER,
+            CONFIGURATION_VALUES.RDS_CONFIGURATION,
             CONFIGURATION_VALUES.KEY_,
             CONFIGURATION_VALUES.VALUE_
         ).values(
             UUID.randomUUID(),
             current.firstOrNull()?.let { it.version!! + 1 }
                 ?: 0,
-            providerId, rdsInstanceId, controllerId, key, value
+            controllerId, providerId, rdsInstanceId, rdsConfigurationId, key, value
         ).execute()
 
         return result == 1

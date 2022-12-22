@@ -3,7 +3,7 @@ package de.solidblocks.rds.controller.providers
 import com.github.kagkarlsson.scheduler.task.ExecutionContext
 import com.github.kagkarlsson.scheduler.task.TaskInstance
 import com.github.kagkarlsson.scheduler.task.helper.Tasks
-import com.github.kagkarlsson.scheduler.task.schedule.FixedDelay
+import com.github.kagkarlsson.scheduler.task.schedule.FixedDelay.ofSeconds
 import de.solidblocks.rds.base.Utils
 import de.solidblocks.rds.controller.RdsScheduler
 import de.solidblocks.rds.controller.api.CreationResult
@@ -12,10 +12,11 @@ import de.solidblocks.rds.controller.controllers.ControllersManager
 import de.solidblocks.rds.controller.model.Constants.API_KEY
 import de.solidblocks.rds.controller.model.Constants.SSH_PRIVATE_KEY
 import de.solidblocks.rds.controller.model.Constants.SSH_PUBLIC_KEY
-import de.solidblocks.rds.controller.model.instances.RdsInstancesRepository
-import de.solidblocks.rds.controller.model.providers.ProviderEntity
+import de.solidblocks.rds.controller.model.entities.ProviderEntity
+import de.solidblocks.rds.controller.model.entities.ProviderId
+import de.solidblocks.rds.controller.model.repositories.ProvidersRepository
+import de.solidblocks.rds.controller.model.repositories.RdsInstancesRepository
 import de.solidblocks.rds.controller.model.status.Status
-import de.solidblocks.rds.controller.model.providers.ProvidersRepository
 import de.solidblocks.rds.controller.model.status.StatusManager
 import de.solidblocks.rds.controller.providers.api.ProviderCreateRequest
 import de.solidblocks.rds.controller.providers.api.ProviderResponse
@@ -37,30 +38,27 @@ class ProvidersManager(
 
     private var applyTask = Tasks.oneTime(
         "providers-apply-task", ProviderEntity::class.java
-    ).execute { inst: TaskInstance<ProviderEntity>, ctx: ExecutionContext ->
+    ).execute { inst: TaskInstance<ProviderEntity>, _: ExecutionContext ->
         apply(inst.data)
     }
 
-    private var healthcheckTask = Tasks.recurring("providers-healthcheck-task", FixedDelay.ofSeconds(15))
+    private var ensureTask =
+        Tasks.recurring("providers-ensure-task", ofSeconds(60)).execute { _: TaskInstance<Void>, _: ExecutionContext ->
+            ensureAll()
+        }
+
+    private var healthcheckTask = Tasks.recurring("providers-healthcheck-task", ofSeconds(15))
         .execute { _: TaskInstance<Void>, _: ExecutionContext ->
 
             for (provider in this.repository.list()) {
-
-                val api = createProviderApi(provider.id)
-
-                if (api == null) {
-                    logger.info { "could not create api for provider '${provider.name}'" }
-                    statusManager.update(provider.id, Status.ERROR)
-                    continue
-                }
+                val api = createProviderApi(provider.id) ?: continue
 
                 if (api.hasSSHKey(sshKeyName(provider))) {
                     logger.info { "provider '${provider.name}' is healthy" }
-                    statusManager.update(provider.id, Status.HEALTHY)
+                    statusManager.update(provider.id.id, Status.HEALTHY)
                 } else {
                     logger.info { "provider '${provider.name}' is unhealthy" }
-                    statusManager.update(provider.id, Status.UNHEALTHY)
-                    scheduleApplyTask(provider)
+                    statusManager.update(provider.id.id, Status.UNHEALTHY)
                 }
             }
         }
@@ -68,23 +66,22 @@ class ProvidersManager(
     init {
         rdsScheduler.addOneTimeTask(applyTask)
         rdsScheduler.addRecurringTask(healthcheckTask)
+        rdsScheduler.addRecurringTask(ensureTask)
     }
 
-    fun createProviderApi(id: UUID): HetznerApi? {
-        val provider = repository.read(id)
+    fun createProviderApi(id: ProviderId): HetznerApi? {
+        val provider = repository.read(id.id)
 
         if (provider == null) {
-            logger.info { "could find provider '$id'" }
+            logger.error { "error creating provider api, could not find provider '$id'" }
             return null
         }
 
         return HetznerApi(provider.apiKey)
     }
 
-    fun sshKeyName(id: UUID) = repository.read(id)?.let { sshKeyName(it) }
-
-    fun read(id: UUID) = repository.read(id)?.let {
-        ProviderResponse(it.id, it.name, it.controller)
+    fun read(id: ProviderId) = repository.read(id.id)?.let {
+        ProviderResponse(it.id.id, it.name, it.controller.id)
     }
 
     fun delete(id: UUID): MessagesResponse {
@@ -101,7 +98,7 @@ class ProvidersManager(
     }
 
     fun list() = repository.list().map {
-        ProviderResponse(it.id, it.name, it.controller)
+        ProviderResponse(it.id.id, it.name, it.controller.id)
     }
 
     fun validate(request: ProviderCreateRequest): MessagesResponse {
@@ -121,6 +118,7 @@ class ProvidersManager(
     }
 
     fun create(request: ProviderCreateRequest): CreationResult<ProviderResponse> {
+
         val sshKey = Utils.generateSshKey(request.name)
 
         val entity = repository.create(
@@ -130,24 +128,20 @@ class ProvidersManager(
             )
         )
 
-        scheduleApplyTask(entity)
+        scheduleApply(entity)
 
         return CreationResult(
             entity.let {
-                ProviderResponse(it.id, it.name, it.controller)
+                ProviderResponse(it.id.id, it.name, it.controller.id)
             }
         )
     }
 
-    fun ensureAll(): Boolean {
-        return repository.list().map {
-            if (diff(it)) {
-                scheduleApplyTask(it)
-            } else {
-                true
-            }
-        }.all { it }
-    }
+    fun sshKeyName(id: ProviderId) = repository.read(id.id)?.let { sshKeyName(it) }
+
+    fun ensureAll() = repository.list().filter { diff(it) }.map {
+        scheduleApply(it)
+    }.all { it }
 
     private fun diff(provider: ProviderEntity): Boolean {
         val api = HetznerApi(provider.apiKey)
@@ -160,19 +154,12 @@ class ProvidersManager(
     }
 
     private fun apply(provider: ProviderEntity): Boolean {
-        logger.info { "starting work for provider '${provider.name} (${provider.id})'" }
+        logger.info { "starting apply for provider '${provider.name}'" }
 
-        val api = createProviderApi(provider.id)
-
-        if (api == null) {
-            logger.info { "could not create api for provider '${provider.name} (${provider.id})'" }
-            return false
-        }
+        val api = createProviderApi(provider.id) ?: return false
 
         if (!api.hasSSHKey(sshKeyName(provider))) {
-            val response = api.ensureSSHKey(sshKeyName(provider), provider.sshPublicKey)
-
-            if (!response) {
+            if (!api.ensureSSHKey(sshKeyName(provider), provider.sshPublicKey)) {
                 logger.error {
                     "creating ssh key failed for provider '${provider.name}'"
                 }
@@ -181,13 +168,13 @@ class ProvidersManager(
             }
         }
 
+        logger.info { "apply finished for provider '${provider.name}'" }
         return true
     }
 
-    private fun scheduleApplyTask(provider: ProviderEntity): Boolean {
+    private fun scheduleApply(provider: ProviderEntity): Boolean {
         logger.info { "scheduling apply for provider '${provider.name}'" }
         rdsScheduler.scheduleTask(applyTask.instance(UUID.randomUUID().toString(), provider))
-
         return true
     }
 }

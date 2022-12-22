@@ -2,9 +2,9 @@ package de.solidblocks.rds.controller
 
 import de.solidblocks.rds.base.Database
 import de.solidblocks.rds.controller.controllers.ControllersManager
-import de.solidblocks.rds.controller.model.controllers.ControllersRepository
-import de.solidblocks.rds.controller.model.instances.RdsInstancesRepository
-import de.solidblocks.rds.controller.model.providers.ProvidersRepository
+import de.solidblocks.rds.controller.model.repositories.ControllersRepository
+import de.solidblocks.rds.controller.model.repositories.ProvidersRepository
+import de.solidblocks.rds.controller.model.repositories.RdsInstancesRepository
 import de.solidblocks.rds.controller.model.status.StatusManager
 import de.solidblocks.rds.controller.model.status.StatusRepository
 import de.solidblocks.rds.controller.providers.ProvidersManager

@@ -113,7 +113,7 @@ class ControllerIntegrationTest {
             )
         } Then {
             statusCode(201)
-            //body("provider.status", equalTo("UNKNOWN"))
+            // body("provider.status", equalTo("UNKNOWN"))
         }
 
         val providerId: String = Given {
@@ -170,7 +170,7 @@ class ControllerIntegrationTest {
             )
         } Then {
             statusCode(201)
-            //body("rdsInstance.status", equalTo("UNKNOWN"))
+            // body("rdsInstance.status", equalTo("UNKNOWN"))
         } Extract {
             path("rdsInstance.id")
         }

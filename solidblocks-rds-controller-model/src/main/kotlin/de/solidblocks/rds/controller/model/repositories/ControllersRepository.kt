@@ -1,7 +1,9 @@
-package de.solidblocks.rds.controller.model.controllers
+package de.solidblocks.rds.controller.model.repositories
 
 import de.solidblocks.rds.controller.model.BaseRepository
 import de.solidblocks.rds.controller.model.CloudConfigValue
+import de.solidblocks.rds.controller.model.entities.ControllerEntity
+import de.solidblocks.rds.controller.model.entities.ControllerId
 import de.solidblocks.rds.controller.model.tables.references.CONFIGURATION_VALUES
 import de.solidblocks.rds.controller.model.tables.references.CONTROLLERS
 import org.jooq.Condition
@@ -23,7 +25,7 @@ class ControllersRepository(dsl: DSLContext) : BaseRepository(dsl) {
         ).values(id, name, false).execute()
 
         configValues.forEach {
-            setConfiguration(ControllerInstanceId(id), it.key, it.value)
+            setConfiguration(ControllerId(id), it.key, it.value)
         }
 
         read(id) ?: run { throw RuntimeException("could not read created controller") }
@@ -42,9 +44,9 @@ class ControllersRepository(dsl: DSLContext) : BaseRepository(dsl) {
             controllers.leftJoin(latest).on(controllers.ID.eq(latest.field(CONFIGURATION_VALUES.CONTROLLER)))
         ).where(filterConditions).fetchGroups({ it.into(controllers) }, { it.into(latest) }).map {
             ControllerEntity(
-                id = it.key.id!!,
+                id = ControllerId(it.key.id!!),
                 name = it.key.name!!,
-                configValues = it.value.map {
+                configValues = it.value.mapNotNull {
                     if (it.getValue(CONFIGURATION_VALUES.KEY_) == null) {
                         null
                     } else {
@@ -54,7 +56,7 @@ class ControllersRepository(dsl: DSLContext) : BaseRepository(dsl) {
                             it.getValue(CONFIGURATION_VALUES.VERSION)!!
                         )
                     }
-                }.filterNotNull(),
+                },
             )
         }
     }
@@ -86,13 +88,13 @@ class ControllersRepository(dsl: DSLContext) : BaseRepository(dsl) {
         key: String,
         value: String?
     ): Boolean {
-        val instance = read(name) ?: return false
-        return setConfiguration(ControllerInstanceId(instance.id), key, value)
+        val controller = read(name) ?: return false
+        return setConfiguration(controller.id, key, value)
     }
 
     private fun update(
         id: UUID,
         key: String,
         value: String
-    ) = setConfiguration(ControllerInstanceId(id), key, value)
+    ) = setConfiguration(ControllerId(id), key, value)
 }

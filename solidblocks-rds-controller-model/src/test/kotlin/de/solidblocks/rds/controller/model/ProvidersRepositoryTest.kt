@@ -1,9 +1,9 @@
 package de.solidblocks.rds.controller.model
 
 import de.solidblocks.rds.base.Database
-import de.solidblocks.rds.controller.model.controllers.ControllerEntity
-import de.solidblocks.rds.controller.model.controllers.ControllersRepository
-import de.solidblocks.rds.controller.model.providers.ProvidersRepository
+import de.solidblocks.rds.controller.model.entities.ControllerEntity
+import de.solidblocks.rds.controller.model.repositories.ControllersRepository
+import de.solidblocks.rds.controller.model.repositories.ProvidersRepository
 import de.solidblocks.rds.controller.model.tables.references.CONFIGURATION_VALUES
 import de.solidblocks.rds.controller.model.tables.references.PROVIDERS
 import de.solidblocks.rds.test.TestDatabaseExtension
@@ -46,7 +46,7 @@ class ProvidersRepositoryTest {
         assertThat(repository.exists("delete")).isTrue
         assertThat(repository.listDeleted()).isEmpty()
 
-        repository.delete(entity.id)
+        repository.delete(entity.id.id)
         assertThat(repository.exists("delete")).isFalse
         assertThat(repository.listDeleted()).isNotEmpty
     }
@@ -58,7 +58,7 @@ class ProvidersRepositoryTest {
         val entity = repository.create("delete-with-config-values", controller, mapOf("key1" to "value1"))
         assertThat(repository.exists("delete-with-config-values")).isTrue
 
-        repository.delete(entity.id)
+        repository.delete(entity.id.id)
         assertThat(repository.exists("delete-with-config-values")).isFalse
     }
 

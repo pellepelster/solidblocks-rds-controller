@@ -4,6 +4,7 @@ import de.solidblocks.rds.base.jsonRequest
 import de.solidblocks.rds.base.jsonResponse
 import de.solidblocks.rds.controller.api.ApiHttpServer
 import de.solidblocks.rds.controller.api.GenericApiResponse
+import de.solidblocks.rds.controller.model.entities.ProviderId
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import io.vertx.ext.web.RoutingContext
 import java.util.*
@@ -66,7 +67,7 @@ class ProvidersApi(apiHttpServer: ApiHttpServer, private val manager: ProvidersM
 
     fun get(rc: RoutingContext) {
         val id = try {
-            UUID.fromString(rc.pathParam("id"))
+            ProviderId(UUID.fromString(rc.pathParam("id")))
         } catch (e: IllegalArgumentException) {
             rc.jsonResponse(ProviderResponseWrapper(), 400)
             return

@@ -1,4 +1,4 @@
-package de.solidblocks.rds.controller.model.instances
+package de.solidblocks.rds.controller.model.repositories
 
 import de.solidblocks.rds.controller.model.BaseRepository
 import de.solidblocks.rds.controller.model.CloudConfigValue
@@ -6,6 +6,9 @@ import de.solidblocks.rds.controller.model.Constants.PASSWORD
 import de.solidblocks.rds.controller.model.Constants.SERVER_PRIVATE_KEY
 import de.solidblocks.rds.controller.model.Constants.SERVER_PUBLIC_KEY
 import de.solidblocks.rds.controller.model.Constants.USERNAME
+import de.solidblocks.rds.controller.model.entities.ProviderId
+import de.solidblocks.rds.controller.model.entities.RdsInstanceEntity
+import de.solidblocks.rds.controller.model.entities.RdsInstanceId
 import de.solidblocks.rds.controller.model.tables.references.CONFIGURATION_VALUES
 import de.solidblocks.rds.controller.model.tables.references.RDS_INSTANCES
 import org.jooq.Condition
@@ -67,10 +70,10 @@ class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
             rdsInstances.leftJoin(latest).on(rdsInstances.ID.eq(latest.field(CONFIGURATION_VALUES.RDS_INSTANCE)))
         ).where(filterConditions).fetchGroups({ it.into(rdsInstances) }, { it.into(latest) }).map {
             RdsInstanceEntity(
-                id = it.key.id!!,
+                id = RdsInstanceId(it.key.id!!),
                 name = it.key.name!!,
-                provider = it.key.provider!!,
-                configValues = it.value.map {
+                provider = ProviderId(it.key.provider!!),
+                configValues = it.value.mapNotNull {
                     if (it.getValue(CONFIGURATION_VALUES.KEY_) == null) {
                         null
                     } else {
@@ -80,7 +83,7 @@ class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
                             it.getValue(CONFIGURATION_VALUES.VERSION)!!
                         )
                     }
-                }.filterNotNull(),
+                },
             )
         }
     }
@@ -114,7 +117,7 @@ class RdsInstancesRepository(dsl: DSLContext) : BaseRepository(dsl) {
         value: String?
     ): Boolean {
         val instance = read(name) ?: return false
-        return setConfiguration(RdsInstanceId(instance.id), key, value)
+        return setConfiguration(instance.id, key, value)
     }
 
     private fun update(

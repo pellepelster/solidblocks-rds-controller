@@ -68,7 +68,12 @@ export class RdsInstancesWizardStep1Component implements RdsInstancesCreateStepC
     <div>
       <form [formGroup]="form" (ngSubmit)="finish()">
 
-        <input-control [form]="form" [messages]="messages" formControlName="name"></input-control>
+        <input-control [form]="form" [messages]="messages" formControlLabel="name"
+                       formControlName="name"></input-control>
+        <input-control [form]="form" [messages]="messages" formControlLabel="username"
+                       formControlName="username"></input-control>
+        <input-control [form]="form" [messages]="messages" formControlLabel="password"
+                       formControlName="password"></input-control>
 
       </form>
 
@@ -82,6 +87,12 @@ export class RdsInstancesWizardStep2Component extends BaseFormComponent implemen
   form = new FormGroup({
     name: new FormControl('', [
       Validators.required
+    ]),
+    username: new FormControl('', [
+      Validators.required
+    ]),
+    password: new FormControl('', [
+      Validators.required
     ])
   });
 
@@ -90,7 +101,7 @@ export class RdsInstancesWizardStep2Component extends BaseFormComponent implemen
   }
 
   finish() {
-    this.rdsInstancesService.create(this.form.value.name as string, this.providerId).subscribe(
+    this.rdsInstancesService.create(this.form.value.name as string, this.providerId, this.form.value.username as string, this.form.value.password as string).subscribe(
       (data) => {
         this.router.navigate(['providers', this.providerId, 'rds', data.rdsInstance.id])
       },

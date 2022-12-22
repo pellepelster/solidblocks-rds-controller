@@ -80,25 +80,6 @@ class RdsInstancesManager(
         return true
     }
 
-    private fun createDirectoryAndSetPermissions(directory: Path): Boolean {
-
-        if (!directory.exists()) {
-            if (!directory.toFile().mkdirs()) {
-                logger.error { "failed to create directory '$directory'" }
-                return false
-            }
-        }
-
-        try {
-            Files.setPosixFilePermissions(directory, PosixFilePermissions.fromString(defaultDirectoryPermissions))
-        } catch (e: Exception) {
-            logger.error(e) { "failed to set permissions '$defaultDirectoryPermissions' for directory '$directory'" }
-            return false
-        }
-
-        return true
-    }
-
     fun status(id: UUID): PostgresqlInstanceStatusResponse? {
         val instance = instances.firstOrNull { it.id == id } ?: return null
         return PostgresqlInstanceStatusResponse(id, instance.isRunning(), instance.isHealthy())
@@ -128,5 +109,24 @@ class RdsInstancesManager(
                 dockerInstance.start()
             }
         }
+    }
+
+    private fun createDirectoryAndSetPermissions(directory: Path): Boolean {
+
+        if (!directory.exists()) {
+            if (!directory.toFile().mkdirs()) {
+                logger.error { "failed to create directory '$directory'" }
+                return false
+            }
+        }
+
+        try {
+            Files.setPosixFilePermissions(directory, PosixFilePermissions.fromString(defaultDirectoryPermissions))
+        } catch (e: Exception) {
+            logger.error(e) { "failed to set permissions '$defaultDirectoryPermissions' for directory '$directory'" }
+            return false
+        }
+
+        return true
     }
 }

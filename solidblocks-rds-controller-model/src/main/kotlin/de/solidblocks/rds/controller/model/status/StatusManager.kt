@@ -9,11 +9,10 @@ class StatusManager(val repository: StatusRepository) {
     }
 
     fun latest(id: UUID) = repository.latest(id).let {
-        if (it == null) {
-            Status.UNKNOWN
+        if (it?.status == null) {
+            return@let Status.UNKNOWN
         }
 
-        Status.valueOf(it!!.status!!)
+        Status.valueOf(it.status!!)
     }
-
 }

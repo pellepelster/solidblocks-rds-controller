@@ -2,12 +2,14 @@ package de.solidblocks.rds.controller
 
 import de.solidblocks.rds.base.Database
 import de.solidblocks.rds.controller.api.ApiHttpServer
+import de.solidblocks.rds.controller.configuration.RdsConfigurationManager
 import de.solidblocks.rds.controller.controllers.ControllersManager
 import de.solidblocks.rds.controller.instances.RdsInstancesManager
 import de.solidblocks.rds.controller.instances.api.RdsInstancesApi
-import de.solidblocks.rds.controller.model.controllers.ControllersRepository
-import de.solidblocks.rds.controller.model.instances.RdsInstancesRepository
-import de.solidblocks.rds.controller.model.providers.ProvidersRepository
+import de.solidblocks.rds.controller.model.repositories.ControllersRepository
+import de.solidblocks.rds.controller.model.repositories.ProvidersRepository
+import de.solidblocks.rds.controller.model.repositories.RdsConfigurationRepository
+import de.solidblocks.rds.controller.model.repositories.RdsInstancesRepository
 import de.solidblocks.rds.controller.model.status.StatusManager
 import de.solidblocks.rds.controller.model.status.StatusRepository
 import de.solidblocks.rds.controller.providers.ProvidersManager
@@ -21,6 +23,8 @@ class Controller(database: Database) {
     private val logger = KotlinLogging.logger {}
 
     private val rdsInstancesRepository = RdsInstancesRepository(database.dsl)
+
+    private val rdsConfigurationRepository = RdsConfigurationRepository(database.dsl)
 
     private val providersRepository = ProvidersRepository(database.dsl)
 
@@ -40,13 +44,24 @@ class Controller(database: Database) {
     private val instancesManager =
         RdsInstancesManager(rdsInstancesRepository, providersManager, controllersManager, rdsScheduler, statusManager)
 
+    private val configurationManager =
+        RdsConfigurationManager(
+            rdsConfigurationRepository,
+            providersManager,
+            instancesManager,
+            rdsScheduler,
+            statusManager
+        )
+
+    private val rdsManager = RdsManager(database.dsl, instancesManager, configurationManager)
+
     private val executor = DefaultLockingTaskExecutor(JdbcLockProvider(database.datasource))
 
     init {
         val httpServer = ApiHttpServer(port = 8080)
 
         val providersApi = ProvidersApi(httpServer, providersManager)
-        val instancesApi = RdsInstancesApi(httpServer, instancesManager)
+        val instancesApi = RdsInstancesApi(httpServer, rdsManager)
 
         rdsScheduler.start()
     }

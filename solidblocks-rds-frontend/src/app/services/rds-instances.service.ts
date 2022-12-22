@@ -12,10 +12,12 @@ export class RdsInstancesService {
   constructor(private http: HttpClient) {
   }
 
-  public create(name: String, provider: string) {
+  public create(name: String, provider: string, username: string, password: string) {
     return this.http.post<RdsInstanceResponseWrapper>(`${environment.apiAddress}/v1/rds-instances`, {
       name,
-      provider
+      provider,
+      username,
+      password
     });
   }
 

@@ -1,6 +1,6 @@
 package de.solidblocks.rds.controller.providers
 
-import de.solidblocks.rds.controller.model.instances.RdsInstanceEntity
+import de.solidblocks.rds.controller.model.entities.RdsInstanceEntity
 import de.solidblocks.rds.controller.utils.Constants.managedByLabel
 import de.solidblocks.rds.controller.utils.HetznerLabels
 import de.solidblocks.rds.controller.utils.Waiter
@@ -141,7 +141,7 @@ class HetznerApi(apiToken: String) {
         }
     }
 
-    data class ServerInfo(val ipAddress: String, val agentPort: Int) {
+    data class ServerEndpoint(val ipAddress: String, val agentPort: Int) {
         val agentAddress: String
             get() = "https://$ipAddress:$agentPort"
     }
@@ -152,7 +152,7 @@ class HetznerApi(apiToken: String) {
         userData: String,
         sshKeyName: String,
         labels: HetznerLabels
-    ): ServerInfo? {
+    ): ServerEndpoint? {
 
         val volumes = volumeNames.map { getVolume(it) }
 
@@ -215,14 +215,14 @@ class HetznerApi(apiToken: String) {
             }
         }
 
-        return serverInfo(serverName)
+        return endpoint(serverName)
     }
 
-    public fun serverInfo(serverName: String): ServerInfo? {
+    fun endpoint(serverName: String): ServerEndpoint? {
         val server = hetznerCloudAPI.getServerByName(serverName) ?: return null
         val ipAddress = server.servers.firstOrNull()?.publicNet?.ipv4?.ip ?: return null
 
-        return ServerInfo(ipAddress, 8080)
+        return ServerEndpoint(ipAddress, 8080)
     }
 
     private fun Action.succesfull(): Boolean = this.finished != null && this.status == "success"

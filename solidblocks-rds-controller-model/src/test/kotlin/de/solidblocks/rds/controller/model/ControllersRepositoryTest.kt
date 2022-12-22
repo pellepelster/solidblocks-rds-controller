@@ -1,7 +1,7 @@
 package de.solidblocks.rds.controller.model
 
 import de.solidblocks.rds.base.Database
-import de.solidblocks.rds.controller.model.controllers.ControllersRepository
+import de.solidblocks.rds.controller.model.repositories.ControllersRepository
 import de.solidblocks.rds.test.TestDatabaseExtension
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -19,7 +19,7 @@ class ControllersRepositoryTest {
         val entity = repository.create("delete")
         assertThat(repository.exists("delete")).isTrue
 
-        assertThat(repository.delete(entity.id)).isTrue
+        assertThat(repository.delete(entity.id.id)).isTrue
         assertThat(repository.exists("delete")).isFalse
     }
 
@@ -31,7 +31,7 @@ class ControllersRepositoryTest {
             repository.create("delete-with-config-values", mapOf("key1" to "label1"))
         assertThat(repository.exists("delete-with-config-values")).isTrue
 
-        repository.delete(entity.id)
+        repository.delete(entity.id.id)
         assertThat(repository.exists("delete-with-config-values")).isFalse
     }
 

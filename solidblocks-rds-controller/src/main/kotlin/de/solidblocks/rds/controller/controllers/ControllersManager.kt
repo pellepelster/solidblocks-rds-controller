@@ -5,8 +5,8 @@ import de.solidblocks.rds.controller.model.Constants.CA_CLIENT_PRIVATE_KEY
 import de.solidblocks.rds.controller.model.Constants.CA_CLIENT_PUBLIC_KEY
 import de.solidblocks.rds.controller.model.Constants.CA_SERVER_PRIVATE_KEY
 import de.solidblocks.rds.controller.model.Constants.CA_SERVER_PUBLIC_KEY
-import de.solidblocks.rds.controller.model.controllers.ControllerEntity
-import de.solidblocks.rds.controller.model.controllers.ControllersRepository
+import de.solidblocks.rds.controller.model.entities.ControllerEntity
+import de.solidblocks.rds.controller.model.repositories.ControllersRepository
 import mu.KotlinLogging
 import java.util.*
 

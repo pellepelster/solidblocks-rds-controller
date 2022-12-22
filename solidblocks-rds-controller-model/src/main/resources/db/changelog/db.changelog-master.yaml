@@ -187,6 +187,28 @@ databaseChangeLog:
             unique: true
 
         - createTable:
+            tableName: rds_configurations
+            columns:
+              - column:
+                  name: id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: deleted
+                  type: boolean
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rds_instance
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_rds_configurations_rds_instance
+                    references: rds_instances(id)
+
+        - createTable:
             tableName: configuration_values
             columns:
               - column:
@@ -231,6 +253,13 @@ databaseChangeLog:
                     nullable: true
                     foreignKeyName: fk_configuration_values_provider
                     references: providers(id)
+              - column:
+                  name: rds_configuration
+                  type: uuid
+                  constraints:
+                    nullable: true
+                    foreignKeyName: fk_configuration_values_rds_configuration
+                    references: rds_configurations(id)
 
         - createTable:
             tableName: status
@@ -256,10 +285,3 @@ databaseChangeLog:
                   type: varchar(256)
                   constraints:
                     nullable: false
-        - createIndex:
-            columns:
-              - column:
-                  name: id
-            indexName: status_id
-            tableName: status
-            unique: true

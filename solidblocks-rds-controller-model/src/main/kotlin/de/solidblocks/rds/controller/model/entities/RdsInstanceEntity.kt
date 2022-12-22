@@ -1,4 +1,4 @@
-package de.solidblocks.rds.controller.model.instances
+package de.solidblocks.rds.controller.model.entities
 
 import com.fasterxml.jackson.annotation.JsonIgnore
 import de.solidblocks.rds.controller.model.CloudConfigValue
@@ -9,10 +9,12 @@ import de.solidblocks.rds.controller.model.Constants.USERNAME
 import de.solidblocks.rds.controller.model.byName
 import java.util.*
 
+class RdsInstanceId(id: UUID) : IdType(id)
+
 data class RdsInstanceEntity(
-    val id: UUID,
+    val id: RdsInstanceId,
     val name: String,
-    val provider: UUID,
+    val provider: ProviderId,
     val configValues: List<CloudConfigValue>
 ) {
     @get:JsonIgnore

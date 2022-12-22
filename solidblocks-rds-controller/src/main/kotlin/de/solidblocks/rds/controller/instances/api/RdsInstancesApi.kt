@@ -2,13 +2,13 @@ package de.solidblocks.rds.controller.instances.api
 
 import de.solidblocks.rds.base.jsonRequest
 import de.solidblocks.rds.base.jsonResponse
+import de.solidblocks.rds.controller.RdsManager
 import de.solidblocks.rds.controller.api.ApiHttpServer
 import de.solidblocks.rds.controller.api.GenericApiResponse
-import de.solidblocks.rds.controller.instances.RdsInstancesManager
 import io.vertx.ext.web.RoutingContext
 import java.util.*
 
-class RdsInstancesApi(apiHttpServer: ApiHttpServer, val manager: RdsInstancesManager) {
+class RdsInstancesApi(apiHttpServer: ApiHttpServer, private val manager: RdsManager) {
 
     init {
         apiHttpServer.configureSubRouter("/api/v1/rds-instances", configure = { router ->
@@ -31,8 +31,9 @@ class RdsInstancesApi(apiHttpServer: ApiHttpServer, val manager: RdsInstancesMan
 
         val result = manager.create(request)
 
-        if (result.data == null) {
+        if (result == null) {
             rc.jsonResponse(GenericApiResponse(), 500)
+            return
         }
 
         rc.jsonResponse(

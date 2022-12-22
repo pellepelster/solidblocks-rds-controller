@@ -1,8 +1,8 @@
 package de.solidblocks.rds.controller.utils
 
 import de.solidblocks.rds.controller.model.LOCATION
-import de.solidblocks.rds.controller.model.instances.RdsInstanceEntity
-import de.solidblocks.rds.controller.model.providers.ProviderEntity
+import de.solidblocks.rds.controller.model.entities.ProviderEntity
+import de.solidblocks.rds.controller.model.entities.RdsInstanceEntity
 
 object Constants {
 

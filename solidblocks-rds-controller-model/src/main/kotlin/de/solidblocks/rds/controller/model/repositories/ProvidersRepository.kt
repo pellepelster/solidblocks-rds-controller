@@ -1,8 +1,11 @@
-package de.solidblocks.rds.controller.model.providers
+package de.solidblocks.rds.controller.model.repositories
 
 import de.solidblocks.rds.controller.model.BaseRepository
 import de.solidblocks.rds.controller.model.CloudConfigValue
-import de.solidblocks.rds.controller.model.controllers.ControllerEntity
+import de.solidblocks.rds.controller.model.entities.ControllerEntity
+import de.solidblocks.rds.controller.model.entities.ControllerId
+import de.solidblocks.rds.controller.model.entities.ProviderEntity
+import de.solidblocks.rds.controller.model.entities.ProviderId
 import de.solidblocks.rds.controller.model.tables.references.CONFIGURATION_VALUES
 import de.solidblocks.rds.controller.model.tables.references.PROVIDERS
 import org.jooq.Condition
@@ -22,7 +25,7 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
 
         dsl.insertInto(PROVIDERS).columns(
             PROVIDERS.ID, PROVIDERS.CONTROLLER, PROVIDERS.NAME, PROVIDERS.DELETED
-        ).values(id, controller.id, name, false).execute()
+        ).values(id, controller.id.id, name, false).execute()
 
         configValues.forEach {
             setConfiguration(ProviderId(id), it.key, it.value)
@@ -43,10 +46,10 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
             providers.leftJoin(latest).on(providers.ID.eq(latest.field(CONFIGURATION_VALUES.PROVIDER)))
         ).where(filterCondition).fetchGroups({ it.into(providers) }, { it.into(latest) }).map {
             ProviderEntity(
-                id = it.key.id!!,
+                id = ProviderId(it.key.id!!),
                 name = it.key.name!!,
-                controller = it.key.controller!!,
-                configValues = it.value.map {
+                controller = ControllerId(it.key.controller!!),
+                configValues = it.value.mapNotNull {
                     if (it.getValue(CONFIGURATION_VALUES.KEY_) == null) {
                         null
                     } else {
@@ -56,7 +59,7 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
                             it.getValue(CONFIGURATION_VALUES.VERSION)!!
                         )
                     }
-                }.filterNotNull(),
+                },
             )
         }
     }
@@ -88,8 +91,8 @@ class ProvidersRepository(dsl: DSLContext) : BaseRepository(dsl) {
         key: String,
         value: String?
     ): Boolean {
-        val instance = read(name) ?: return false
-        return setConfiguration(ProviderId(instance.id), key, value)
+        val provider = read(name) ?: return false
+        return setConfiguration(provider.id, key, value)
     }
 
     private fun update(

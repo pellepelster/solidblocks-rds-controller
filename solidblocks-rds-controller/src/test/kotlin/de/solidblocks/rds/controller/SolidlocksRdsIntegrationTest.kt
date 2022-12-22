@@ -1,19 +1,19 @@
 package de.solidblocks.rds.controller
 
 import de.solidblocks.rds.base.Database
+import de.solidblocks.rds.controller.configuration.RdsConfigurationManager
 import de.solidblocks.rds.controller.controllers.ControllersManager
 import de.solidblocks.rds.controller.instances.RdsInstancesManager
 import de.solidblocks.rds.controller.instances.api.RdsInstanceCreateRequest
-import de.solidblocks.rds.controller.model.controllers.ControllersRepository
-import de.solidblocks.rds.controller.model.instances.RdsInstancesRepository
-import de.solidblocks.rds.controller.model.providers.ProvidersRepository
+import de.solidblocks.rds.controller.model.repositories.ControllersRepository
+import de.solidblocks.rds.controller.model.repositories.ProvidersRepository
+import de.solidblocks.rds.controller.model.repositories.RdsConfigurationRepository
+import de.solidblocks.rds.controller.model.repositories.RdsInstancesRepository
 import de.solidblocks.rds.controller.model.status.StatusManager
 import de.solidblocks.rds.controller.model.status.StatusRepository
 import de.solidblocks.rds.controller.providers.HetznerApi
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import de.solidblocks.rds.controller.providers.api.ProviderCreateRequest
-import de.solidblocks.rds.shared.dto.VersionResponse
-import de.solidblocks.rds.shared.solidblocksVersion
 import de.solidblocks.rds.test.TestDatabaseExtension
 import me.tomsdevsn.hetznercloud.HetznerCloudAPI
 import mu.KotlinLogging
@@ -23,8 +23,6 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.junit.jupiter.api.extension.ExtendWith
 import java.nio.file.Path
-import java.time.Duration.ofMinutes
-import java.time.Duration.ofSeconds
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 
@@ -70,19 +68,30 @@ class SolidlocksRdsIntegrationTest {
         val rdsScheduler = RdsScheduler(database)
         val statusManager = StatusManager(StatusRepository(database.dsl))
 
+        val rdsInstancesRepository = RdsInstancesRepository(database.dsl)
+
         val controllersManager = ControllersManager(ControllersRepository(database.dsl))
+
         val providersManager = ProvidersManager(
             ProvidersRepository(database.dsl),
-            RdsInstancesRepository(database.dsl),
+            rdsInstancesRepository,
             controllersManager,
             rdsScheduler,
             statusManager
         )
 
         val rdsInstancesManager = RdsInstancesManager(
-            RdsInstancesRepository(database.dsl),
+            rdsInstancesRepository,
             providersManager,
             controllersManager,
+            rdsScheduler,
+            statusManager
+        )
+
+        val rdsConfigurationManager = RdsConfigurationManager(
+            RdsConfigurationRepository(database.dsl),
+            providersManager,
+            rdsInstancesManager,
             rdsScheduler,
             statusManager
         )
@@ -100,14 +109,9 @@ class SolidlocksRdsIntegrationTest {
                 provider = provider.data!!.id
             )
         )
-        await().atMost(ofMinutes(2)).pollInterval(ofSeconds(5)).until({
-            rdsInstancesManager.runningInstancesStatus()
-        }, { it.isNotEmpty() && it.all { it.status != null } })
 
-        rdsInstancesManager.runningInstancesClients().forEach {
-            val version = it.get<VersionResponse>("/v1/agent/version")
-            assertThat(version.code).isEqualTo(200)
-            assertThat(version.data!!.version).isEqualTo(solidblocksVersion())
+        await().until {
+            rdsConfigurationManager.list().isNotEmpty()
         }
     }
 }
