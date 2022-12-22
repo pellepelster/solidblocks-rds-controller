@@ -50,4 +50,8 @@ class Controller(database: Database) {
 
         rdsScheduler.start()
     }
+
+    fun stop() {
+        rdsScheduler.stop()
+    }
 }

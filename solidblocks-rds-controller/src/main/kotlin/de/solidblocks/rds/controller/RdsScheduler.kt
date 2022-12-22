@@ -27,6 +27,10 @@ class RdsScheduler(private val database: Database) {
         scheduler!!.start()
     }
 
+    fun stop() {
+        scheduler?.stop()
+    }
+
     fun scheduleTask(task: TaskInstance<out Any>) {
 
         if (scheduler == null) {

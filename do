@@ -57,7 +57,7 @@ function ensure_environment() {
 }
 
 function task_test() {
-  task_publish
+  #Ctask_publish
   task_prepare_integration_test
 
   export HCLOUD_TOKEN="$(pass_wrapper "hetzner_api_key")"

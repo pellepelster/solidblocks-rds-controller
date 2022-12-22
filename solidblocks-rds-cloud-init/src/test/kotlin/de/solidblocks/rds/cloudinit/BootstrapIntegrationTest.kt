@@ -4,6 +4,7 @@ import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.*
 import mu.KotlinLogging
 import org.awaitility.Awaitility.await
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.DockerComposeContainer
 import org.testcontainers.containers.output.Slf4jLogConsumer
@@ -36,6 +37,7 @@ class BootstrapIntegrationTest {
     }.toByteArray()
 
     @Test
+    @Disabled
     fun testCloudInitBootstrap() {
         val tempDir = Files.createTempDir()
 
@@ -55,7 +57,10 @@ class BootstrapIntegrationTest {
             )
         )
 
-        java.nio.file.Files.setPosixFilePermissions(cloudInitFile.toPath(), PosixFilePermissions.fromString("r-xr-xr-x"))
+        java.nio.file.Files.setPosixFilePermissions(
+            cloudInitFile.toPath(),
+            PosixFilePermissions.fromString("r-xr-xr-x")
+        )
 
         val compose =
             KDockerComposeContainer(File("src/test/resources/rds-cloud-init/docker-compose.yml")).withBuild(true)
@@ -73,7 +78,7 @@ class BootstrapIntegrationTest {
                 )
         )
 
-        await().atMost(ofSeconds(60)).until {
+        await().atMost(ofSeconds(120)).until {
             val result =
                 compose.getContainerByServiceName("test_1").get().execInContainer("cat", "/solidblocks/file1.txt")
             result.stdout.contains(fileContent)

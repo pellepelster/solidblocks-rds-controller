@@ -9,12 +9,12 @@ import de.solidblocks.rds.shared.dto.TriggerUpdateResponse
 import de.solidblocks.rds.shared.dto.VersionResponse
 import mu.KotlinLogging
 import org.assertj.core.api.Assertions.assertThat
-import org.awaitility.kotlin.*
+import org.awaitility.kotlin.await
+import org.awaitility.kotlin.withPollDelay
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.testcontainers.containers.DockerComposeContainer
 import java.io.File
-import java.net.ConnectException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Duration
@@ -107,7 +107,7 @@ class RdsPostgresqlAgentIntegrationTest {
             "https://localhost:8080", serverCa.publicKey, clientKeyPair.privateKey, clientKeyPair.publicKey
         )
 
-        await ignoreException (ConnectException::class) until {
+        await.ignoreExceptions().until {
             client.get<VersionResponse>("/v1/agent/version").isSuccessful
         }
 
@@ -119,7 +119,7 @@ class RdsPostgresqlAgentIntegrationTest {
             ).isSuccessful
         ).isTrue
 
-        await atMost (Duration.ofSeconds(15)) ignoreException (ConnectException::class) untilAsserted {
+        await.ignoreExceptions().atMost(Duration.ofSeconds(15)).untilAsserted {
             assertThat(client.get<VersionResponse>("/v1/agent/version").data!!.version).isEqualTo(greenVersion)
         }
     }
@@ -155,7 +155,7 @@ class RdsPostgresqlAgentIntegrationTest {
             "https://localhost:8080", serverCa.publicKey, clientKeyPair.privateKey, clientKeyPair.publicKey
         )
 
-        await ignoreException (ConnectException::class) until {
+        await.ignoreExceptions().until {
             client.get<VersionResponse>("/v1/agent/version").isSuccessful
         }
 
@@ -167,7 +167,7 @@ class RdsPostgresqlAgentIntegrationTest {
             ).isSuccessful
         ).isTrue
 
-        await withPollDelay (Duration.ofSeconds(20)) atMost (Duration.ofSeconds(25)) ignoreException (ConnectException::class) untilAsserted {
+        await.ignoreExceptions().withPollDelay(Duration.ofSeconds(20)).atMost(Duration.ofSeconds(25)).untilAsserted {
             assertThat(client.get<VersionResponse>("/v1/agent/version").data!!.version).isEqualTo(blueVersion)
         }
     }

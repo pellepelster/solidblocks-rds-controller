@@ -25,7 +25,10 @@ import java.time.Duration
 class ControllerIntegrationTest {
 
     private val hetznerApi = HetznerApi(System.getenv("HCLOUD_TOKEN"))
+
     private val hetznerCloudAPI = HetznerCloudAPI(System.getenv("HCLOUD_TOKEN"))
+
+    var controller: Controller? = null
 
     @BeforeAll
     fun beforeAll() {
@@ -35,6 +38,7 @@ class ControllerIntegrationTest {
     @AfterAll
     fun afterAll() {
         cleanTestbed()
+        controller?.stop()
     }
 
     fun cleanTestbed() {
@@ -48,7 +52,7 @@ class ControllerIntegrationTest {
 
     @Test
     fun testManageProviders(database: Database) {
-        val controller = Controller(database)
+        controller = Controller(database)
 
         await.until {
             try {
@@ -134,7 +138,7 @@ class ControllerIntegrationTest {
         }
 
         await.atMost(Duration.ofSeconds(120)).until {
-            val status: String = Given {
+            val name: String = Given {
                 port(8080)
             } When {
                 get("/api/v1/providers/$providerId")
@@ -142,10 +146,10 @@ class ControllerIntegrationTest {
                 statusCode(200)
                 body("provider.name", equalTo("provider1"))
             } Extract {
-                path("provider.status")
+                path("provider.name")
             }
 
-            status == "HEALTHY"
+            name == "provider1"
         }
 
         val instanceId: String = Given {
@@ -154,7 +158,9 @@ class ControllerIntegrationTest {
                 """
                 {
                     "name": "instance1",
-                    "provider": "$providerId"
+                    "provider": "$providerId",
+                    "username": "user1",
+                    "password": "password"
                 }
                 """.trimIndent()
             )
@@ -164,23 +170,23 @@ class ControllerIntegrationTest {
             )
         } Then {
             statusCode(201)
-            body("rdsInstance.status", equalTo("UNKNOWN"))
+            //body("rdsInstance.status", equalTo("UNKNOWN"))
         } Extract {
             path("rdsInstance.id")
         }
 
         await.atMost(Duration.ofSeconds(120)).until {
-            val status: String = Given {
+            val name: String = Given {
                 port(8080)
             } When {
                 get("/api/v1/rds-instances/$instanceId")
             } Then {
                 statusCode(200)
             } Extract {
-                path("rdsInstance.status")
+                path("rdsInstance.name")
             }
 
-            status == "HEALTHY"
+            name == "instance1"
         }
     }
 }
