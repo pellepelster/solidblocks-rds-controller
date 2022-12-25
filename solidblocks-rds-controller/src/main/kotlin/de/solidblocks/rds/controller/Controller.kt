@@ -47,7 +47,6 @@ class Controller(database: Database) {
     private val configurationManager =
         RdsConfigurationManager(
             rdsConfigurationRepository,
-            providersManager,
             instancesManager,
             rdsScheduler,
             statusManager

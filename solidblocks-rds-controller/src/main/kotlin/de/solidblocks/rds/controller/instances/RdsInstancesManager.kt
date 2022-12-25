@@ -17,6 +17,7 @@ import de.solidblocks.rds.controller.model.entities.RdsInstanceId
 import de.solidblocks.rds.controller.model.repositories.RdsInstancesRepository
 import de.solidblocks.rds.controller.model.status.Status
 import de.solidblocks.rds.controller.model.status.StatusManager
+import de.solidblocks.rds.controller.providers.AgentEndpoint
 import de.solidblocks.rds.controller.providers.HetznerApi
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import de.solidblocks.rds.controller.utils.Constants
@@ -57,15 +58,19 @@ class RdsInstancesManager(
         .execute { _: TaskInstance<Void>, _: ExecutionContext ->
 
             for (rdsInstance in repository.list()) {
-
-                val api = providersManager.createProviderApi(rdsInstance.provider) ?: continue
-                val endpoint = api.endpoint(serverName(rdsInstance))
+                val endpoint = endpoint(rdsInstance.id)
 
                 if (endpoint == null) {
                     logger.info { "could not get endpoint for rds instance '${rdsInstance.name}'" }
                     statusManager.update(rdsInstance.id.id, Status.ERROR)
                 } else {
-                    if (HealthChecks.checkPort(InetSocketAddress(endpoint.ipAddress, endpoint.agentPort))) {
+                    if (HealthChecks.checkPort(
+                            InetSocketAddress(
+                                    endpoint.endpoint.ipAddress,
+                                    endpoint.endpoint.agentPort
+                                )
+                        )
+                    ) {
                         logger.info { "rds instance '${rdsInstance.name}' is healthy" }
                         statusManager.update(rdsInstance.id.id, Status.HEALTHY)
                     } else {
@@ -80,6 +85,23 @@ class RdsInstancesManager(
         rdsScheduler.addOneTimeTask(applyTask)
         rdsScheduler.addRecurringTask(healthcheckTask)
         rdsScheduler.addRecurringTask(ensureTask)
+    }
+
+    fun endpoint(id: RdsInstanceId): AgentEndpoint? {
+        val rdsInstance = repository.read(id.id) ?: return null
+
+        val provider = providersManager.read(rdsInstance.provider) ?: return null
+        val controller = controllersManager.readInternal(provider.controller) ?: return null
+
+        val api = providersManager.createProviderApi(rdsInstance.provider) ?: return null
+        val endpoint = api.endpoint(serverName(rdsInstance)) ?: return null
+
+        return AgentEndpoint(
+            endpoint = endpoint,
+            caServerPublicKey = controller.caServerPublicKey,
+            caClientPrivateKey = controller.caClientPrivateKey,
+            caClientPublicKey = controller.caClientPublicKey
+        )
     }
 
     fun read(id: UUID) = repository.read(id)?.let {

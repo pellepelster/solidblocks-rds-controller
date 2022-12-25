@@ -9,6 +9,7 @@ import de.solidblocks.rds.controller.model.repositories.ControllersRepository
 import de.solidblocks.rds.controller.model.repositories.ProvidersRepository
 import de.solidblocks.rds.controller.model.repositories.RdsConfigurationRepository
 import de.solidblocks.rds.controller.model.repositories.RdsInstancesRepository
+import de.solidblocks.rds.controller.model.status.Status
 import de.solidblocks.rds.controller.model.status.StatusManager
 import de.solidblocks.rds.controller.model.status.StatusRepository
 import de.solidblocks.rds.controller.providers.HetznerApi
@@ -23,6 +24,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.junit.jupiter.api.extension.ExtendWith
 import java.nio.file.Path
+import java.time.Duration.ofMinutes
 import kotlin.io.path.exists
 import kotlin.io.path.readText
 
@@ -90,18 +92,25 @@ class SolidlocksRdsIntegrationTest {
 
         val rdsConfigurationManager = RdsConfigurationManager(
             RdsConfigurationRepository(database.dsl),
-            providersManager,
             rdsInstancesManager,
             rdsScheduler,
             statusManager
         )
+
+        val rdsManager = RdsManager(database.dsl, rdsInstancesManager, rdsConfigurationManager)
 
         rdsScheduler.start()
 
         val provider =
             providersManager.create(ProviderCreateRequest(name = "hetzner1", apiKey = System.getenv("HCLOUD_TOKEN")))
 
-        rdsInstancesManager.create(
+        await().atMost(ofMinutes(2)).until {
+            providersManager.list().isNotEmpty() && providersManager.list().all {
+                statusManager.latest(it.id) == Status.HEALTHY
+            }
+        }
+
+        rdsManager.create(
             RdsInstanceCreateRequest(
                 name = "rds-instance1",
                 username = "user1",
@@ -110,8 +119,10 @@ class SolidlocksRdsIntegrationTest {
             )
         )
 
-        await().until {
-            rdsConfigurationManager.list().isNotEmpty()
+        await().atMost(ofMinutes(3)).until {
+            rdsConfigurationManager.list().isNotEmpty() && rdsConfigurationManager.list().all {
+                statusManager.latest(it.id.id) == Status.HEALTHY
+            }
         }
     }
 }

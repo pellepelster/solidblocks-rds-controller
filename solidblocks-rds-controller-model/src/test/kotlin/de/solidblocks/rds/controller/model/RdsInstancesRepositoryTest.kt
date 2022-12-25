@@ -84,7 +84,7 @@ class RdsInstancesRepositoryTest {
         assertThat(updatedEntity.configValues[0].name).isEqualTo("key1")
         assertThat(updatedEntity.configValues[0].value).isEqualTo("value2")
         assertThat(updatedEntity.configValues[0].version).isEqualTo(1)
-        assertThat(updatedEntity.configValues).hasSize(1)
+        assertThat(updatedEntity.configValues).hasSize(5)
 
         assertThat(repository.update("update-config-value", "key1", null)).isTrue
         val updatedInstanceWithNullValue = repository.read("update-config-value")!!

@@ -17,7 +17,7 @@ object HealthChecks {
             true
         }
     } catch (e: IOException) {
-        logger.warn { "waiting for '${address.hostName}:${address.port}'" }
+        logger.info { "waiting for '${address.hostName}:${address.port}'" }
         false
     }
 

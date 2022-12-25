@@ -4,22 +4,21 @@ import com.github.kagkarlsson.scheduler.task.ExecutionContext
 import com.github.kagkarlsson.scheduler.task.TaskInstance
 import com.github.kagkarlsson.scheduler.task.helper.Tasks
 import com.github.kagkarlsson.scheduler.task.schedule.FixedDelay
+import de.solidblocks.rds.agent.MtlsHttpClient
 import de.solidblocks.rds.controller.RdsScheduler
 import de.solidblocks.rds.controller.instances.RdsInstancesManager
 import de.solidblocks.rds.controller.model.entities.RdsConfigurationEntity
 import de.solidblocks.rds.controller.model.entities.RdsInstanceEntity
 import de.solidblocks.rds.controller.model.entities.RdsInstanceId
 import de.solidblocks.rds.controller.model.repositories.RdsConfigurationRepository
+import de.solidblocks.rds.controller.model.status.Status
 import de.solidblocks.rds.controller.model.status.StatusManager
-import de.solidblocks.rds.controller.providers.ProvidersManager
+import de.solidblocks.rds.shared.dto.VersionResponse
 import mu.KotlinLogging
 import java.util.*
 
-data class RunningInstanceStatus(val status: String? = null)
-
 class RdsConfigurationManager(
     private val repository: RdsConfigurationRepository,
-    private val providersManager: ProvidersManager,
     private val rdsInstancesManager: RdsInstancesManager,
     private val rdsScheduler: RdsScheduler,
     private val statusManager: StatusManager
@@ -35,8 +34,31 @@ class RdsConfigurationManager(
 
     private var healthcheckTask = Tasks.recurring("rds-configuration-healthcheck-task", FixedDelay.ofSeconds(15))
         .execute { _: TaskInstance<Void>, _: ExecutionContext ->
+
             for (rdsConfiguration in repository.list()) {
-                val api = rdsInstancesManager.createProviderApi(rdsConfiguration.rdsInstance) ?: continue
+                val endpoint = rdsInstancesManager.endpoint(rdsConfiguration.rdsInstance) ?: continue
+
+                val client = MtlsHttpClient(
+                    endpoint.agentAddress,
+                    endpoint.caServerPublicKey,
+                    endpoint.caClientPrivateKey,
+                    endpoint.caClientPublicKey
+                )
+
+                try {
+                    val response = client.get<VersionResponse>("/v1/agent/version")
+
+                    if (response.isSuccessful) {
+                        logger.info { "rds configuration '${rdsConfiguration.id}' is healthy" }
+                        statusManager.update(rdsConfiguration.id.id, Status.HEALTHY)
+                    } else {
+                        logger.info { "rds configuration '${rdsConfiguration.id}' is unhealthy" }
+                        statusManager.update(rdsConfiguration.id.id, Status.UNHEALTHY)
+                    }
+                } catch (_: Exception) {
+                    logger.info { "rds configuration '${rdsConfiguration.id}' is unhealthy" }
+                    statusManager.update(rdsConfiguration.id.id, Status.UNHEALTHY)
+                }
             }
         }
 

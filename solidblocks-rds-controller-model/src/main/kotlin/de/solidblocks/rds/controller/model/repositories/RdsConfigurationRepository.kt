@@ -25,7 +25,8 @@ class RdsConfigurationRepository(dsl: DSLContext) : BaseRepository(dsl) {
         dsl.insertInto(rdsInstances).columns(
             rdsInstances.ID,
             rdsInstances.RDS_INSTANCE,
-        ).values(id, rdsInstanceId.id).execute()
+            rdsInstances.DELETED,
+        ).values(id, rdsInstanceId.id, false).execute()
 
         configValues.forEach {
             setConfiguration(RdsConfigurationId(id), it.key, it.value)

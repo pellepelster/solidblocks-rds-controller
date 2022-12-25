@@ -15,6 +15,8 @@ import me.tomsdevsn.hetznercloud.objects.request.VolumeRequest
 import mu.KotlinLogging
 import org.springframework.web.client.HttpClientErrorException
 
+private fun Action.succesfull(): Boolean = this.finished != null && this.status == "success"
+
 class HetznerApi(apiToken: String) {
 
     private val logger = KotlinLogging.logger {}
@@ -141,11 +143,6 @@ class HetznerApi(apiToken: String) {
         }
     }
 
-    data class ServerEndpoint(val ipAddress: String, val agentPort: Int) {
-        val agentAddress: String
-            get() = "https://$ipAddress:$agentPort"
-    }
-
     fun ensureServer(
         serverName: String,
         volumeNames: List<String>,
@@ -224,8 +221,6 @@ class HetznerApi(apiToken: String) {
 
         return ServerEndpoint(ipAddress, 8080)
     }
-
-    private fun Action.succesfull(): Boolean = this.finished != null && this.status == "success"
 
     fun waitForServerAction(server: Server, action: Action) = Waiter.defaultWaiter().waitFor {
 
