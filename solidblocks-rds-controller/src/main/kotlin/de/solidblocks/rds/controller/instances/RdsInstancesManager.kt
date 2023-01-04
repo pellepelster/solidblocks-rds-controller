@@ -8,19 +8,21 @@ import de.solidblocks.rds.base.Utils
 import de.solidblocks.rds.cloudinit.CloudInitTemplates
 import de.solidblocks.rds.controller.RdsScheduler
 import de.solidblocks.rds.controller.api.MessagesResponse
-import de.solidblocks.rds.controller.api.StatusResponse
 import de.solidblocks.rds.controller.controllers.ControllersManager
 import de.solidblocks.rds.controller.instances.api.RdsInstanceCreateRequest
 import de.solidblocks.rds.controller.instances.api.RdsInstanceResponse
+import de.solidblocks.rds.controller.log.LogManager
 import de.solidblocks.rds.controller.model.entities.ProviderId
 import de.solidblocks.rds.controller.model.entities.RdsInstanceEntity
 import de.solidblocks.rds.controller.model.entities.RdsInstanceId
+import de.solidblocks.rds.controller.model.repositories.LogRepository
 import de.solidblocks.rds.controller.model.repositories.RdsInstancesRepository
 import de.solidblocks.rds.controller.model.status.HealthStatus
-import de.solidblocks.rds.controller.status.StatusManager
+import de.solidblocks.rds.controller.model.status.ProvisioningStatus
 import de.solidblocks.rds.controller.providers.AgentEndpoint
 import de.solidblocks.rds.controller.providers.HetznerApi
 import de.solidblocks.rds.controller.providers.ProvidersManager
+import de.solidblocks.rds.controller.status.StatusManager
 import de.solidblocks.rds.controller.utils.Constants
 import de.solidblocks.rds.controller.utils.Constants.backup1VolumeName
 import de.solidblocks.rds.controller.utils.Constants.data1VolumeName
@@ -35,6 +37,7 @@ import java.util.*
 
 class RdsInstancesManager(
     private val repository: RdsInstancesRepository,
+    private val logRepository: LogRepository,
     private val providersManager: ProvidersManager,
     private val controllersManager: ControllersManager,
     private val rdsScheduler: RdsScheduler,
@@ -46,7 +49,16 @@ class RdsInstancesManager(
     private var applyTask = Tasks.oneTime(
         "rds-instances-apply-task", RdsInstanceEntity::class.java
     ).execute { inst: TaskInstance<RdsInstanceEntity>, ctx: ExecutionContext ->
-        apply(inst.data)
+        with(inst.data) {
+            try {
+                statusManager.update(id, ProvisioningStatus.RUNNING)
+                apply(inst.data, LogManager(id.id, logRepository, logger))
+                statusManager.update(id, ProvisioningStatus.FINISHED)
+            } catch (e: Exception) {
+                statusManager.update(id, ProvisioningStatus.FAILED)
+                logger.error(e) { "failed to execute apply task" }
+            }
+        }
     }
 
     private var ensureTask =
@@ -106,13 +118,13 @@ class RdsInstancesManager(
     }
 
     fun read(id: UUID) = repository.read(id)?.let {
-        RdsInstanceResponse(it.id.id, it.name, it.provider.id, StatusResponse(statusManager.latest(it.id.id)))
+        RdsInstanceResponse(it.id.id, it.name, it.provider.id, statusManager.latest(it.id.id))
     }
 
     fun delete(id: UUID) = repository.delete(id)
 
     fun list() = repository.list().map {
-        RdsInstanceResponse(it.id.id, it.name, it.provider.id, StatusResponse(statusManager.latest(it.id.id)))
+        RdsInstanceResponse(it.id.id, it.name, it.provider.id, statusManager.latest(it.id.id))
     }
 
     fun validate(request: RdsInstanceCreateRequest): MessagesResponse {
@@ -166,11 +178,11 @@ class RdsInstancesManager(
         return providersManager.createProviderApi(rdsInstance.provider)
     }
 
-    private fun apply(rdsInstance: RdsInstanceEntity): Boolean {
-        logger.info { "starting apply rds instance '${rdsInstance.name} (${rdsInstance.id})'" }
+    private fun apply(rdsInstance: RdsInstanceEntity, logManager: LogManager): Boolean {
+        logManager.info { "starting rds instance provisioning '${rdsInstance.name} (${rdsInstance.id})'" }
 
-        if (statusManager.latest(rdsInstance.provider.id) != HealthStatus.HEALTHY) {
-            logger.warn { "provider '${rdsInstance.provider}' for rds instance '${rdsInstance.name}' not healthy, skipping apply " }
+        if (statusManager.latest(rdsInstance.provider.id).health != HealthStatus.HEALTHY) {
+            logManager.warn { "provider '${rdsInstance.provider}' for rds instance '${rdsInstance.name}' not healthy, skipping apply " }
             return false
         }
 
@@ -185,13 +197,13 @@ class RdsInstancesManager(
         val serverName = serverName(rdsInstance)
 
         val sshKeyName = providersManager.sshKeyName(rdsInstance.provider) ?: run {
-            logger.info { "could not find ssh key name for provider '${rdsInstance.provider}'" }
+            logManager.info { "could not find ssh key name for provider '${rdsInstance.provider}'" }
             return false
         }
 
         val data1VolumeResult = api.ensureVolume(data1VolumeName, labels)
         if (!data1VolumeResult) {
-            logger.info {
+            logManager.info {
                 "could not create volume '$data1VolumeName' for instance '${rdsInstance.name}'"
             }
             return false
@@ -199,7 +211,7 @@ class RdsInstancesManager(
 
         val backup1VolumeResult = api.ensureVolume(backup1VolumeName, labels)
         if (!backup1VolumeResult) {
-            logger.info {
+            logManager.info {
                 "could not create volume '$backup1VolumeName' for instance '${rdsInstance.name}'"
             }
             return false
@@ -221,7 +233,7 @@ class RdsInstancesManager(
 
         api.ensureServer(serverName, listOf(data1VolumeName, backup1VolumeName), cloudInit, sshKeyName, labels)
             ?: run {
-                logger.info {
+                logManager.info {
                     "could not ensure server '$serverName' for rds instance '${rdsInstance.name}'"
                 }
 
@@ -229,6 +241,8 @@ class RdsInstancesManager(
             }
 
         statusManager.update(rdsInstance.id.id, HealthStatus.HEALTHY)
+
+        logManager.info { "rds instance provisioning '${rdsInstance.name} (${rdsInstance.id})' finished" }
 
         return true
     }

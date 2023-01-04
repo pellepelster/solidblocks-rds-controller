@@ -1,7 +1,6 @@
 package de.solidblocks.rds.controller
 
 import de.solidblocks.rds.controller.api.CreationResult
-import de.solidblocks.rds.controller.api.StatusResponse
 import de.solidblocks.rds.controller.configuration.RdsConfigurationManager
 import de.solidblocks.rds.controller.instances.RdsInstancesManager
 import de.solidblocks.rds.controller.instances.api.RdsInstanceCreateRequest
@@ -25,7 +24,7 @@ class RdsManager(
 
         CreationResult(
             result.let {
-                RdsInstanceResponse(it.id.id, it.name, it.provider.id, StatusResponse(statusManager.latest(it.id.id)))
+                RdsInstanceResponse(it.id.id, it.name, it.provider.id, statusManager.latest(it.id.id))
             }
         )
     }

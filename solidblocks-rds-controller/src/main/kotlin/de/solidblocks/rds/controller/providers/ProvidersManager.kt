@@ -8,7 +8,6 @@ import de.solidblocks.rds.base.Utils
 import de.solidblocks.rds.controller.RdsScheduler
 import de.solidblocks.rds.controller.api.CreationResult
 import de.solidblocks.rds.controller.api.MessagesResponse
-import de.solidblocks.rds.controller.api.StatusResponse
 import de.solidblocks.rds.controller.controllers.ControllersManager
 import de.solidblocks.rds.controller.log.LogManager
 import de.solidblocks.rds.controller.model.Constants.API_KEY
@@ -95,7 +94,7 @@ class ProvidersManager(
     }
 
     fun read(id: ProviderId) = repository.read(id.id)?.let {
-        ProviderResponse(it.id.id, it.name, it.controller.id, StatusResponse(statusManager.latest(id.id)))
+        ProviderResponse(it.id.id, it.name, it.controller.id, statusManager.latest(id.id))
     }
 
     fun delete(id: UUID): MessagesResponse {
@@ -112,7 +111,7 @@ class ProvidersManager(
     }
 
     fun list() = repository.list().map {
-        ProviderResponse(it.id.id, it.name, it.controller.id, StatusResponse(statusManager.latest(it.id.id)))
+        ProviderResponse(it.id.id, it.name, it.controller.id, statusManager.latest(it.id.id))
     }
 
     fun validate(request: ProviderCreateRequest): MessagesResponse {
@@ -146,7 +145,7 @@ class ProvidersManager(
 
         return CreationResult(
             entity.let {
-                ProviderResponse(it.id.id, it.name, it.controller.id, StatusResponse(statusManager.latest(it.id.id)))
+                ProviderResponse(it.id.id, it.name, it.controller.id, statusManager.latest(it.id.id))
             }
         )
     }

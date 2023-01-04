@@ -1,5 +1,6 @@
 package de.solidblocks.rds.controller.status
 
+import de.solidblocks.rds.controller.api.StatusResponse
 import de.solidblocks.rds.controller.model.entities.IdType
 import de.solidblocks.rds.controller.model.status.HealthStatus
 import de.solidblocks.rds.controller.model.status.ProvisioningStatus
@@ -24,15 +25,17 @@ class StatusManager(val repository: StatusRepository) {
     }
 
     fun latest(id: UUID) = repository.latest(id).let {
-        if (it?.statusHealth == null) {
-            return@let HealthStatus.UNKNOWN
-        }
+        val health = it?.statusHealth ?: HealthStatus.UNKNOWN.toString()
+
+        val provisioning = it?.statusProvisioning ?: HealthStatus.UNKNOWN.toString()
 
         try {
-            HealthStatus.valueOf(it.statusHealth!!)
+
+            StatusResponse(HealthStatus.valueOf(health), ProvisioningStatus.valueOf(provisioning))
         } catch (e: Exception) {
-            logger.error(e) { "failed to parse health '${it.statusHealth}'" }
-            return@let HealthStatus.UNKNOWN
+            logger.error(e) { "failed to parse health '${health}' and/or provisioning '${provisioning}'" }
+            StatusResponse(HealthStatus.UNKNOWN, ProvisioningStatus.UNKNOWN)
         }
+
     }
 }

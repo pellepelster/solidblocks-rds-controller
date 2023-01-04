@@ -8,6 +8,7 @@ import {ToastService} from "./toast.service";
     <ngb-toast
       *ngFor="let toast of toastService.toasts"
       [class]="toast.classname"
+      class="position-fixed bottom-0 end-0 m-3"
       [autohide]="true"
       [delay]="toast.delay || 5000"
       (hidden)="toastService.remove(toast)"

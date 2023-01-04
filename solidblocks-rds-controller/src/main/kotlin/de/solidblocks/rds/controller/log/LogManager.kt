@@ -18,6 +18,13 @@ class LogManager(val id: UUID, val repository: LogRepository, val logger: KLogge
         }
     }
 
+    fun warn(msg: () -> String) {
+        with(msg.invoke()) {
+            log(Level.WARN, this)
+            logger.warn { this }
+        }
+    }
+
     fun error(msg: () -> String) {
         with(msg.invoke()) {
             log(Level.ERROR, this)

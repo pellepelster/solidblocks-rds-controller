@@ -83,6 +83,7 @@ class SolidlocksRdsIntegrationTest {
 
         val rdsInstancesManager = RdsInstancesManager(
             rdsInstancesRepository,
+            logRepository,
             providersManager,
             controllersManager,
             rdsScheduler,
@@ -105,7 +106,7 @@ class SolidlocksRdsIntegrationTest {
 
         await().atMost(ofMinutes(2)).until {
             providersManager.list().isNotEmpty() && providersManager.list().all {
-                statusManager.latest(it.id) == HealthStatus.HEALTHY
+                statusManager.latest(it.id).health == HealthStatus.HEALTHY
             }
         }
 
@@ -120,7 +121,7 @@ class SolidlocksRdsIntegrationTest {
 
         await().atMost(ofMinutes(3)).until {
             rdsConfigurationManager.list().isNotEmpty() && rdsConfigurationManager.list().all {
-                statusManager.latest(it.id.id) == HealthStatus.HEALTHY
+                statusManager.latest(it.id.id).health == HealthStatus.HEALTHY
             }
         }
     }
