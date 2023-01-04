@@ -6,14 +6,11 @@ import de.solidblocks.rds.controller.utils.HetznerLabels
 import de.solidblocks.rds.controller.utils.Waiter
 import me.tomsdevsn.hetznercloud.HetznerCloudAPI
 import me.tomsdevsn.hetznercloud.objects.general.Action
-import me.tomsdevsn.hetznercloud.objects.general.Server
-import me.tomsdevsn.hetznercloud.objects.general.Volume
 import me.tomsdevsn.hetznercloud.objects.request.AttachVolumeRequest
-import me.tomsdevsn.hetznercloud.objects.request.SSHKeyRequest
-import me.tomsdevsn.hetznercloud.objects.request.ServerRequest
-import me.tomsdevsn.hetznercloud.objects.request.VolumeRequest
+import me.tomsdevsn.hetznercloud.objects.request.CreateSSHKeyRequest
+import me.tomsdevsn.hetznercloud.objects.request.CreateServerRequest
+import me.tomsdevsn.hetznercloud.objects.request.CreateVolumeRequest
 import mu.KotlinLogging
-import org.springframework.web.client.HttpClientErrorException
 
 private fun Action.succesfull(): Boolean = this.finished != null && this.status == "success"
 
@@ -44,7 +41,7 @@ class HetznerApi(apiToken: String) {
             if (it.server != null) {
                 val response = hetznerCloudAPI.detachVolume(it.id)
 
-                if (!waitForVolumeAction(it.id, response.action)) {
+                if (!waitForAction(response.action)) {
                     return@map false
                 }
             }
@@ -85,22 +82,11 @@ class HetznerApi(apiToken: String) {
 
         logger.info { "creating volume '$name'" }
         val response = hetznerCloudAPI.createVolume(
-            VolumeRequest.builder().location("nbg1").labels(labels.labels()).name(name).size(16).format("ext4").build()
+            CreateVolumeRequest.builder().location("nbg1").labels(labels.labels()).name(name).size(16).format("ext4")
+                .build()
         )
 
-        return waitForVolumeAction(response.volume, response.action)
-    }
-
-    private fun waitForVolumeAction(volume: Volume, action: Action) = Waiter.defaultWaiter().waitFor {
-        val actionResult = hetznerCloudAPI.getActionOfVolume(volume.id, action.id)
-        logger.info { "waiting for volume '${actionResult.action.command}' to finish for volume '${volume.name}', current status is '${actionResult.action.status}'" }
-        actionResult.action.finished != null && actionResult.action.status == "success"
-    }
-
-    private fun waitForVolumeAction(volumeId: Long, action: Action) = Waiter.defaultWaiter().waitFor {
-        val actionResult = hetznerCloudAPI.getActionOfVolume(volumeId, action.id)
-        logger.info { "waiting for volume '${actionResult.action.command}' to finish for volume '$volumeId', current status is '${actionResult.action.status}'" }
-        actionResult.action.finished != null && actionResult.action.status == "success"
+        return waitForAction(response.action)
     }
 
     fun hasServer(name: String) = getServer(name) != null
@@ -136,11 +122,7 @@ class HetznerApi(apiToken: String) {
         logger.info { "deleting server '$name'" }
         val response = hetznerCloudAPI.deleteServer(server.id)
 
-        return try {
-            waitForServerAction(server, response.action)
-        } catch (_: HttpClientErrorException.NotFound) {
-            true
-        }
+        return waitForAction(response.action)
     }
 
     fun ensureServer(
@@ -172,7 +154,7 @@ class HetznerApi(apiToken: String) {
             logger.info { "creating server '$serverName'" }
 
             val response = hetznerCloudAPI.createServer(
-                ServerRequest.builder()
+                CreateServerRequest.builder()
                     .location("nbg1")
                     .image("debian-11")
                     .sshKey(sshKey.name)
@@ -184,7 +166,7 @@ class HetznerApi(apiToken: String) {
                     .name(serverName).build()
             )
 
-            waitForServerAction(response.server, response.action)
+            waitForAction(response.action)
             server = response.server
         }
 
@@ -198,14 +180,14 @@ class HetznerApi(apiToken: String) {
                 val response =
                     hetznerCloudAPI.attachVolumeToServer(
                         volume!!.id,
-                        AttachVolumeRequest.builder().serverID(server.id).build()
+                        AttachVolumeRequest.builder().serverId(server.id).build()
                     )
-                if (!waitForServerAction(server, response.action)) {
+                if (!waitForAction(response.action)) {
                     logger.error { "attaching volume to server failed for server '$serverName' and volume '${volume.name}'" }
                     return null
                 }
 
-                if (!waitForServerAction(server, hetznerCloudAPI.powerOnServer(server.id).action)) {
+                if (!waitForAction(hetznerCloudAPI.powerOnServer(server.id).action)) {
                     logger.error { "powering up server '$serverName' failed" }
                     return null
                 }
@@ -216,20 +198,20 @@ class HetznerApi(apiToken: String) {
     }
 
     fun endpoint(serverName: String): ServerEndpoint? {
-        val server = hetznerCloudAPI.getServerByName(serverName) ?: return null
+        val server = hetznerCloudAPI.getServer(serverName) ?: return null
         val ipAddress = server.servers.firstOrNull()?.publicNet?.ipv4?.ip ?: return null
 
         return ServerEndpoint(ipAddress, 8080)
     }
 
-    fun waitForServerAction(server: Server, action: Action) = Waiter.defaultWaiter().waitFor {
+    fun waitForAction(action: Action) = Waiter.defaultWaiter().waitFor {
 
         if (action.succesfull()) {
             return@waitFor true
         }
 
-        val actionResult = hetznerCloudAPI.getActionOfServer(server.id, action.id)
-        logger.info { "waiting for action '${actionResult.action.command}' to finish for server '${server.name}', current status is '${actionResult.action.status}'" }
+        val actionResult = hetznerCloudAPI.getAction(action.id)
+        logger.info { "waiting for action '${actionResult.action.command}' to finish, current status is '${actionResult.action.status}'" }
         actionResult.action.succesfull()
     }
 
@@ -245,7 +227,7 @@ class HetznerApi(apiToken: String) {
         }
 
         logger.info { "creating ssh key '$name'" }
-        val response = hetznerCloudAPI.createSSHKey(SSHKeyRequest.builder().name(name).publicKey(publicKey).build())
+        val response = hetznerCloudAPI.createSSHKey(CreateSSHKeyRequest.builder().name(name).publicKey(publicKey).build())
 
         logger.info { "created ssh key '$name' with fingerprint '${response.sshKey.fingerprint}'" }
 

@@ -5,15 +5,21 @@ import de.solidblocks.rds.base.jsonResponse
 import de.solidblocks.rds.controller.api.ApiHttpServer
 import de.solidblocks.rds.controller.api.GenericApiResponse
 import de.solidblocks.rds.controller.model.entities.ProviderId
+import de.solidblocks.rds.controller.model.status.StatusManager
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import io.vertx.ext.web.RoutingContext
 import java.util.*
 
-class ProvidersApi(apiHttpServer: ApiHttpServer, private val manager: ProvidersManager) {
+class ProvidersApi(
+    apiHttpServer: ApiHttpServer,
+    private val manager: ProvidersManager,
+    private val statusManager: StatusManager
+) {
 
     init {
         apiHttpServer.configureSubRouter("/api/v1/providers", configure = { router ->
             router.get("/:id").handler(this::get)
+            router.get("/:id/status").handler(this::status)
             router.delete("/:id").handler(this::delete)
             router.post().handler(this::create)
             router.get().handler(this::list)
@@ -81,5 +87,18 @@ class ProvidersApi(apiHttpServer: ApiHttpServer, private val manager: ProvidersM
         }
 
         rc.jsonResponse(ProviderResponseWrapper(provider = provider))
+    }
+
+    fun status(rc: RoutingContext) {
+        val id = try {
+            ProviderId(UUID.fromString(rc.pathParam("id")))
+        } catch (e: IllegalArgumentException) {
+            rc.jsonResponse(ProviderResponseWrapper(), 400)
+            return
+        }
+
+        val status = statusManager.latest(id.id)
+
+        rc.jsonResponse(ProviderStatusResponse(id.id, status))
     }
 }

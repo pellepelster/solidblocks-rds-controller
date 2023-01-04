@@ -81,7 +81,7 @@ class ProvidersManager(
     }
 
     fun read(id: ProviderId) = repository.read(id.id)?.let {
-        ProviderResponse(it.id.id, it.name, it.controller.id)
+        ProviderResponse(it.id.id, it.name, it.controller.id, statusManager.latest(id.id))
     }
 
     fun delete(id: UUID): MessagesResponse {
@@ -98,7 +98,7 @@ class ProvidersManager(
     }
 
     fun list() = repository.list().map {
-        ProviderResponse(it.id.id, it.name, it.controller.id)
+        ProviderResponse(it.id.id, it.name, it.controller.id, statusManager.latest(it.id.id))
     }
 
     fun validate(request: ProviderCreateRequest): MessagesResponse {
@@ -132,7 +132,7 @@ class ProvidersManager(
 
         return CreationResult(
             entity.let {
-                ProviderResponse(it.id.id, it.name, it.controller.id)
+                ProviderResponse(it.id.id, it.name, it.controller.id, statusManager.latest(it.id.id))
             }
         )
     }

@@ -10,6 +10,25 @@ import java.util.*
 
 class ProviderId(id: UUID) : IdType(id)
 
+/*
+fun RoutingContext.toProviderId() {
+
+}
+fun status(rc: RoutingContext) {
+    val id = try {
+        ProviderId(UUID.fromString(rc.pathParam("id")))
+    } catch (e: IllegalArgumentException) {
+        rc.jsonResponse(ProviderResponseWrapper(), 400)
+        return
+    }
+
+    val status = statusManager.latest(id.id)
+
+
+    rc.jsonResponse(ProviderStatusResponse(id.id, status))
+}
+*/
+
 data class ProviderEntity(
     val id: ProviderId,
     val name: String,

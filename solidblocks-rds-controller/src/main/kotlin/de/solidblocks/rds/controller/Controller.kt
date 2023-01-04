@@ -52,14 +52,14 @@ class Controller(database: Database) {
             statusManager
         )
 
-    private val rdsManager = RdsManager(database.dsl, instancesManager, configurationManager)
+    private val rdsManager = RdsManager(database.dsl, instancesManager, configurationManager, statusManager)
 
     private val executor = DefaultLockingTaskExecutor(JdbcLockProvider(database.datasource))
 
     init {
         val httpServer = ApiHttpServer(port = 8080)
 
-        val providersApi = ProvidersApi(httpServer, providersManager)
+        val providersApi = ProvidersApi(httpServer, providersManager, statusManager)
         val instancesApi = RdsInstancesApi(httpServer, rdsManager)
 
         rdsScheduler.start()

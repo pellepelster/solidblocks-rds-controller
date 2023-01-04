@@ -1,6 +1,6 @@
 import {Injectable} from '@angular/core'
 import {HttpClient} from "@angular/common/http"
-import {ProviderResponseWrapper, ProvidersResponseWrapper} from "./types";
+import {ProviderResponseWrapper, ProvidersResponseWrapper, ProviderStatusResponse} from "./types";
 import {environment} from "../../environments/environment";
 
 @Injectable({
@@ -31,4 +31,7 @@ export class ProvidersService {
     return this.http.delete(`${environment.apiAddress}/v1/providers/${id}`);
   }
 
+  public status(id: string) {
+    return this.http.get<ProviderStatusResponse>(`${environment.apiAddress}/v1/providers/${id}/status`);
+  }
 }

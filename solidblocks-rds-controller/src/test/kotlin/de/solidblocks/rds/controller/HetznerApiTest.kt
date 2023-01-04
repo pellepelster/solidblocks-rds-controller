@@ -9,7 +9,7 @@ import de.solidblocks.rds.docker.HealthChecks
 import de.solidblocks.rds.shared.dto.VersionResponse
 import de.solidblocks.rds.shared.solidblocksVersion
 import me.tomsdevsn.hetznercloud.HetznerCloudAPI
-import me.tomsdevsn.hetznercloud.objects.request.ServerRequest
+import me.tomsdevsn.hetznercloud.objects.request.CreateServerRequest
 import mu.KotlinLogging
 import org.assertj.core.api.Assertions.assertThat
 import org.awaitility.Awaitility.*
@@ -144,14 +144,14 @@ class HetznerApiTest {
     fun testDoesNotDeleteUnmanagedServers() {
 
         val response = hetznerCloudAPI.createServer(
-            ServerRequest.builder()
+            CreateServerRequest.builder()
                 .location("nbg1")
                 .image("debian-11")
                 .startAfterCreate(false)
                 .serverType("cx11")
                 .name("unamanged-server").build()
         )
-        assertThat(hetznerApi.waitForServerAction(response.server, response.action)).isTrue
+        assertThat(hetznerApi.waitForAction(response.action)).isTrue
 
         assertThat(hetznerApi.hasServer("unamanged-server")).isFalse
         assertThat(hetznerApi.cleanupServersNotInList(emptyList())).isTrue

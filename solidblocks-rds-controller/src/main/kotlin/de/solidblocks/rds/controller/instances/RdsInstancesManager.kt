@@ -66,9 +66,9 @@ class RdsInstancesManager(
                 } else {
                     if (HealthChecks.checkPort(
                             InetSocketAddress(
-                                    endpoint.endpoint.ipAddress,
-                                    endpoint.endpoint.agentPort
-                                )
+                                endpoint.endpoint.ipAddress,
+                                endpoint.endpoint.agentPort
+                            )
                         )
                     ) {
                         logger.info { "rds instance '${rdsInstance.name}' is healthy" }
@@ -105,13 +105,13 @@ class RdsInstancesManager(
     }
 
     fun read(id: UUID) = repository.read(id)?.let {
-        RdsInstanceResponse(it.id.id, it.name, it.provider.id)
+        RdsInstanceResponse(it.id.id, it.name, it.provider.id, statusManager.latest(it.id.id))
     }
 
     fun delete(id: UUID) = repository.delete(id)
 
     fun list() = repository.list().map {
-        RdsInstanceResponse(it.id.id, it.name, it.provider.id)
+        RdsInstanceResponse(it.id.id, it.name, it.provider.id, statusManager.latest(it.id.id))
     }
 
     fun validate(request: RdsInstanceCreateRequest): MessagesResponse {

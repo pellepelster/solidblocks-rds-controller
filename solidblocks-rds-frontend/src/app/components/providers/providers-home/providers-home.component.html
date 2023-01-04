@@ -14,15 +14,27 @@
       <thead>
       <tr>
         <th scope="col">Name</th>
+        <th scope="col">Status</th>
       </tr>
       </thead>
       <tbody>
 
-      <tr *ngFor="let rdsInstance of rdsInstances">
+      <tr *ngIf="rdsInstances?.length === 0">
         <td class="card bg-white mt-3 mb-2">
+          <a [routerLink]="[ 'rds', 'create' ]">
+            Create a RDS Instance
+          </a>
+        </td>
+      </tr>
+
+      <tr *ngFor="let rdsInstance of rdsInstances" class="card bg-white mt-3 mb-2">
+        <td>
           <a [routerLink]="[ 'rds', rdsInstance.id ]">
             {{rdsInstance.name}}
           </a>
+        </td>
+        <td>
+          <span class="badge bg-{{ rdsInstance.status | providerStatusColor}} ml-2">{{rdsInstance.status}}</span>
         </td>
       </tr>
 

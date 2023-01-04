@@ -97,7 +97,7 @@ class SolidlocksRdsIntegrationTest {
             statusManager
         )
 
-        val rdsManager = RdsManager(database.dsl, rdsInstancesManager, rdsConfigurationManager)
+        val rdsManager = RdsManager(database.dsl, rdsInstancesManager, rdsConfigurationManager, statusManager)
 
         rdsScheduler.start()
 

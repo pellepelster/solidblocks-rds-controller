@@ -22,6 +22,11 @@ export interface ProviderResponseWrapper {
   provider: ProviderResponse
 }
 
+export interface ProviderStatusResponse {
+  id: string
+  status: string
+}
+
 export interface MessageResponse {
   attribute: string
   code: string
@@ -31,6 +36,7 @@ export interface MessageResponse {
 export interface RdsInstanceResponse {
   name: string
   id: string
+  status: string
 }
 
 export interface RdsInstancesResponseWrapper {

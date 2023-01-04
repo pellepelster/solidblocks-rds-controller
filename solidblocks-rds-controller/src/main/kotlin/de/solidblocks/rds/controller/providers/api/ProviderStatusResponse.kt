@@ -3,4 +3,4 @@ package de.solidblocks.rds.controller.providers.api
 import de.solidblocks.rds.controller.model.status.Status
 import java.util.*
 
-data class ProviderResponse(val id: UUID, val name: String, val controller: UUID, val status: Status)
+data class ProviderStatusResponse(val id: UUID, val status: Status)

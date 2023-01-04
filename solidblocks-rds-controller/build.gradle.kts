@@ -19,7 +19,7 @@ dependencies {
     implementation("io.github.resilience4j:resilience4j-kotlin:1.7.1")
     implementation("io.github.resilience4j:resilience4j-retry:1.7.1")
 
-    implementation("me.tomsdevsn:hetznercloud-api:2.15.1")
+    implementation("me.tomsdevsn:hetznercloud-api:3.0.1")
 
     testImplementation(project(":solidblocks-rds-postgresql-agent"))
     testImplementation(project(":solidblocks-rds-test"))
@@ -33,13 +33,16 @@ dependencies {
 application {
     mainClass.set("de.solidblocks.rds.controller.ApplicationCliKt")
 }
+
 repositories {
     mavenCentral()
 }
+
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.kotlinOptions {
     jvmTarget = "1.8"
 }
+
 val compileTestKotlin: KotlinCompile by tasks
 compileTestKotlin.kotlinOptions {
     jvmTarget = "1.8"
