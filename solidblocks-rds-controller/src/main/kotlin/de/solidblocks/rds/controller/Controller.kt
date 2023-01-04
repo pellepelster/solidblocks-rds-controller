@@ -6,11 +6,8 @@ import de.solidblocks.rds.controller.configuration.RdsConfigurationManager
 import de.solidblocks.rds.controller.controllers.ControllersManager
 import de.solidblocks.rds.controller.instances.RdsInstancesManager
 import de.solidblocks.rds.controller.instances.api.RdsInstancesApi
-import de.solidblocks.rds.controller.model.repositories.ControllersRepository
-import de.solidblocks.rds.controller.model.repositories.ProvidersRepository
-import de.solidblocks.rds.controller.model.repositories.RdsConfigurationRepository
-import de.solidblocks.rds.controller.model.repositories.RdsInstancesRepository
-import de.solidblocks.rds.controller.model.status.StatusManager
+import de.solidblocks.rds.controller.model.repositories.*
+import de.solidblocks.rds.controller.status.StatusManager
 import de.solidblocks.rds.controller.model.status.StatusRepository
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import de.solidblocks.rds.controller.providers.api.ProvidersApi
@@ -30,6 +27,8 @@ class Controller(database: Database) {
 
     private val controllersRepository = ControllersRepository(database.dsl)
 
+    private val logRepository = LogRepository(database.dsl)
+
     private val statusRepository = StatusRepository(database.dsl)
 
     private val rdsScheduler = RdsScheduler(database)
@@ -39,7 +38,7 @@ class Controller(database: Database) {
     private val statusManager = StatusManager(statusRepository)
 
     private val providersManager =
-        ProvidersManager(providersRepository, rdsInstancesRepository, controllersManager, rdsScheduler, statusManager)
+        ProvidersManager(providersRepository, rdsInstancesRepository, controllersManager, rdsScheduler, statusManager, logRepository)
 
     private val instancesManager =
         RdsInstancesManager(rdsInstancesRepository, providersManager, controllersManager, rdsScheduler, statusManager)

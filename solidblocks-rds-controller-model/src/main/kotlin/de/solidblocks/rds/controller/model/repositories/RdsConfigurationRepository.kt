@@ -91,4 +91,7 @@ class RdsConfigurationRepository(dsl: DSLContext) : BaseRepository(dsl) {
         key: String,
         value: String
     ) = setConfiguration(RdsInstanceId(id), key, value)
+
+    fun deleteByInstance(id: UUID) =
+        dsl.delete(RDS_CONFIGURATIONS).where(RDS_CONFIGURATIONS.RDS_INSTANCE.eq(id)).execute()
 }

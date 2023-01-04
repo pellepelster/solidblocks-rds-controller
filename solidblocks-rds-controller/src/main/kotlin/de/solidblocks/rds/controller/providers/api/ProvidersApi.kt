@@ -5,8 +5,8 @@ import de.solidblocks.rds.base.jsonResponse
 import de.solidblocks.rds.controller.api.ApiHttpServer
 import de.solidblocks.rds.controller.api.GenericApiResponse
 import de.solidblocks.rds.controller.model.entities.ProviderId
-import de.solidblocks.rds.controller.model.status.StatusManager
 import de.solidblocks.rds.controller.providers.ProvidersManager
+import de.solidblocks.rds.controller.status.StatusManager
 import io.vertx.ext.web.RoutingContext
 import java.util.*
 
@@ -65,9 +65,9 @@ class ProvidersApi(
 
         val deleteResult = manager.delete(id)
         if (deleteResult.hasErrors()) {
-            rc.jsonResponse(ProviderResponseWrapper(), 204)
-        } else {
             rc.jsonResponse(ProviderResponseWrapper(messages = deleteResult.messages), 400)
+        } else {
+            rc.jsonResponse(ProviderResponseWrapper(), 204)
         }
     }
 

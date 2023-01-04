@@ -265,23 +265,57 @@ databaseChangeLog:
             tableName: status
             columns:
               - column:
-                  name: id
+                  name: status_id
                   type: uuid
                   constraints:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: entity
+                  name: entity_id
                   type: uuid
                   constraints:
                     nullable: false
               - column:
-                  name: status_time
+                  name: status_timestamp
                   type: TIMESTAMP
                   constraints:
                     nullable: false
               - column:
-                  name: status
+                  name: status_health
                   type: varchar(256)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status_provisioning
+                  type: varchar(256)
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: log
+            columns:
+              - column:
+                  name: log_id
+                  type: uuid
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: entity_id
+                  type: uuid
+                  constraints:
+                    nullable: false
+              - column:
+                  name: log_time
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: false
+              - column:
+                  name: log_message
+                  type: varchar(1024)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: log_level
+                  type: varchar(32)
                   constraints:
                     nullable: false

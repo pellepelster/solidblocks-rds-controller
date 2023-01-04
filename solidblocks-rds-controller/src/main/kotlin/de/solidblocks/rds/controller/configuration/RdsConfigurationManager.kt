@@ -11,8 +11,8 @@ import de.solidblocks.rds.controller.model.entities.RdsConfigurationEntity
 import de.solidblocks.rds.controller.model.entities.RdsInstanceEntity
 import de.solidblocks.rds.controller.model.entities.RdsInstanceId
 import de.solidblocks.rds.controller.model.repositories.RdsConfigurationRepository
-import de.solidblocks.rds.controller.model.status.Status
-import de.solidblocks.rds.controller.model.status.StatusManager
+import de.solidblocks.rds.controller.model.status.HealthStatus
+import de.solidblocks.rds.controller.status.StatusManager
 import de.solidblocks.rds.shared.dto.VersionResponse
 import mu.KotlinLogging
 import java.util.*
@@ -50,14 +50,14 @@ class RdsConfigurationManager(
 
                     if (response.isSuccessful) {
                         logger.info { "rds configuration '${rdsConfiguration.id}' is healthy" }
-                        statusManager.update(rdsConfiguration.id.id, Status.HEALTHY)
+                        statusManager.update(rdsConfiguration.id.id, HealthStatus.HEALTHY)
                     } else {
                         logger.info { "rds configuration '${rdsConfiguration.id}' is unhealthy" }
-                        statusManager.update(rdsConfiguration.id.id, Status.UNHEALTHY)
+                        statusManager.update(rdsConfiguration.id.id, HealthStatus.UNHEALTHY)
                     }
                 } catch (_: Exception) {
                     logger.info { "rds configuration '${rdsConfiguration.id}' is unhealthy" }
-                    statusManager.update(rdsConfiguration.id.id, Status.UNHEALTHY)
+                    statusManager.update(rdsConfiguration.id.id, HealthStatus.UNHEALTHY)
                 }
             }
         }
@@ -80,6 +80,8 @@ class RdsConfigurationManager(
     }
 
     fun list() = repository.list()
+
+    fun deleteByInstance(id: UUID) = repository.deleteByInstance(id)
 
     /*
     private fun createHttpClient(id: UUID): MtlsHttpClient? {

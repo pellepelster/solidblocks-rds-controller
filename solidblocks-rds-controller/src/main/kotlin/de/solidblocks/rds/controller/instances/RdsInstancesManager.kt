@@ -8,6 +8,7 @@ import de.solidblocks.rds.base.Utils
 import de.solidblocks.rds.cloudinit.CloudInitTemplates
 import de.solidblocks.rds.controller.RdsScheduler
 import de.solidblocks.rds.controller.api.MessagesResponse
+import de.solidblocks.rds.controller.api.StatusResponse
 import de.solidblocks.rds.controller.controllers.ControllersManager
 import de.solidblocks.rds.controller.instances.api.RdsInstanceCreateRequest
 import de.solidblocks.rds.controller.instances.api.RdsInstanceResponse
@@ -15,8 +16,8 @@ import de.solidblocks.rds.controller.model.entities.ProviderId
 import de.solidblocks.rds.controller.model.entities.RdsInstanceEntity
 import de.solidblocks.rds.controller.model.entities.RdsInstanceId
 import de.solidblocks.rds.controller.model.repositories.RdsInstancesRepository
-import de.solidblocks.rds.controller.model.status.Status
-import de.solidblocks.rds.controller.model.status.StatusManager
+import de.solidblocks.rds.controller.model.status.HealthStatus
+import de.solidblocks.rds.controller.status.StatusManager
 import de.solidblocks.rds.controller.providers.AgentEndpoint
 import de.solidblocks.rds.controller.providers.HetznerApi
 import de.solidblocks.rds.controller.providers.ProvidersManager
@@ -62,7 +63,7 @@ class RdsInstancesManager(
 
                 if (endpoint == null) {
                     logger.info { "could not get endpoint for rds instance '${rdsInstance.name}'" }
-                    statusManager.update(rdsInstance.id.id, Status.ERROR)
+                    statusManager.update(rdsInstance.id.id, HealthStatus.ERROR)
                 } else {
                     if (HealthChecks.checkPort(
                             InetSocketAddress(
@@ -72,10 +73,10 @@ class RdsInstancesManager(
                         )
                     ) {
                         logger.info { "rds instance '${rdsInstance.name}' is healthy" }
-                        statusManager.update(rdsInstance.id.id, Status.HEALTHY)
+                        statusManager.update(rdsInstance.id.id, HealthStatus.HEALTHY)
                     } else {
                         logger.info { "rds instance '${rdsInstance.name}' is unhealthy" }
-                        statusManager.update(rdsInstance.id.id, Status.UNHEALTHY)
+                        statusManager.update(rdsInstance.id.id, HealthStatus.UNHEALTHY)
                     }
                 }
             }
@@ -105,13 +106,13 @@ class RdsInstancesManager(
     }
 
     fun read(id: UUID) = repository.read(id)?.let {
-        RdsInstanceResponse(it.id.id, it.name, it.provider.id, statusManager.latest(it.id.id))
+        RdsInstanceResponse(it.id.id, it.name, it.provider.id, StatusResponse(statusManager.latest(it.id.id)))
     }
 
     fun delete(id: UUID) = repository.delete(id)
 
     fun list() = repository.list().map {
-        RdsInstanceResponse(it.id.id, it.name, it.provider.id, statusManager.latest(it.id.id))
+        RdsInstanceResponse(it.id.id, it.name, it.provider.id, StatusResponse(statusManager.latest(it.id.id)))
     }
 
     fun validate(request: RdsInstanceCreateRequest): MessagesResponse {
@@ -168,7 +169,7 @@ class RdsInstancesManager(
     private fun apply(rdsInstance: RdsInstanceEntity): Boolean {
         logger.info { "starting apply rds instance '${rdsInstance.name} (${rdsInstance.id})'" }
 
-        if (statusManager.latest(rdsInstance.provider.id) != Status.HEALTHY) {
+        if (statusManager.latest(rdsInstance.provider.id) != HealthStatus.HEALTHY) {
             logger.warn { "provider '${rdsInstance.provider}' for rds instance '${rdsInstance.name}' not healthy, skipping apply " }
             return false
         }
@@ -227,7 +228,7 @@ class RdsInstancesManager(
                 return false
             }
 
-        statusManager.update(rdsInstance.id.id, Status.HEALTHY)
+        statusManager.update(rdsInstance.id.id, HealthStatus.HEALTHY)
 
         return true
     }

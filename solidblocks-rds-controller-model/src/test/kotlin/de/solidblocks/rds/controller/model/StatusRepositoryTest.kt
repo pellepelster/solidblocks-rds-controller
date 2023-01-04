@@ -1,7 +1,8 @@
 package de.solidblocks.rds.controller.model
 
 import de.solidblocks.rds.base.Database
-import de.solidblocks.rds.controller.model.status.Status
+import de.solidblocks.rds.controller.model.status.HealthStatus
+import de.solidblocks.rds.controller.model.status.ProvisioningStatus
 import de.solidblocks.rds.controller.model.status.StatusRepository
 import de.solidblocks.rds.controller.model.tables.references.STATUS
 import de.solidblocks.rds.test.TestDatabaseExtension
@@ -22,17 +23,24 @@ class StatusRepositoryTest {
     }
 
     @Test
-    fun testUpdateStatus(database: Database) {
+    fun testUpdates(database: Database) {
         val repository = StatusRepository(database.dsl)
 
         val id = UUID.randomUUID()
 
         assertThat(repository.latest(id)).isNull()
 
-        repository.update(id, Status.HEALTHY)
-        assertThat(repository.latest(id)!!.status).isEqualTo(Status.HEALTHY.toString())
+        repository.update(id, HealthStatus.HEALTHY)
+        assertThat(repository.latest(id)!!.statusHealth).isEqualTo(HealthStatus.HEALTHY.toString())
+        assertThat(repository.latest(id)!!.statusProvisioning).isEqualTo(ProvisioningStatus.UNKNOWN.toString())
 
-        repository.update(id, Status.UNHEALTHY)
-        assertThat(repository.latest(id)!!.status).isEqualTo(Status.UNHEALTHY.toString())
+        repository.update(id, HealthStatus.UNHEALTHY)
+        assertThat(repository.latest(id)!!.statusHealth).isEqualTo(HealthStatus.UNHEALTHY.toString())
+        assertThat(repository.latest(id)!!.statusProvisioning).isEqualTo(ProvisioningStatus.UNKNOWN.toString())
+
+        repository.update(id, ProvisioningStatus.RUNNING)
+        assertThat(repository.latest(id)!!.statusHealth).isEqualTo(HealthStatus.UNHEALTHY.toString())
+        assertThat(repository.latest(id)!!.statusProvisioning).isEqualTo(ProvisioningStatus.RUNNING.toString())
     }
+
 }

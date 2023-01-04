@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {Component, Input, OnInit} from '@angular/core';
 import {RdsInstancesService} from "../../../services/rds-instances.service";
 import {BaseFormComponent} from "../../base-form.component";
 import {ToastService} from "../../../utils/toast.service";
@@ -22,32 +22,26 @@ export class RdsInstancesHomeComponent extends BaseFormComponent implements OnIn
   }
 
   ngOnInit(): void {
-    /*
     this.subscription = this.route.params.subscribe(
       (next) => {
         this.rdsInstancesService.get(next['rdsInstanceId']).subscribe(
           (next) => {
             this.rdsInstance = next.rdsInstance
-            this.contextService.nextRdsInstance(next.rdsInstance)
           },
           (error) => {
             this.toastsService.handleErrorResponse(error)
           }
         )
       });
-
-     */
   }
 
   delete(id: string) {
-
-    /*
     this.rdsInstancesService.delete(id).subscribe((next) => {
-        this.router.navigate(['providers', this.contextService.currentProviderId.value])
+        this.router.navigate(['providers'])
       },
       (error) => {
         this.toastsService.handleErrorResponse(error)
       }
-    )*/
+    )
   }
 }

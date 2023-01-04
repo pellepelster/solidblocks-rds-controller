@@ -1,11 +1,12 @@
 package de.solidblocks.rds.controller
 
 import de.solidblocks.rds.controller.api.CreationResult
+import de.solidblocks.rds.controller.api.StatusResponse
 import de.solidblocks.rds.controller.configuration.RdsConfigurationManager
 import de.solidblocks.rds.controller.instances.RdsInstancesManager
 import de.solidblocks.rds.controller.instances.api.RdsInstanceCreateRequest
 import de.solidblocks.rds.controller.instances.api.RdsInstanceResponse
-import de.solidblocks.rds.controller.model.status.StatusManager
+import de.solidblocks.rds.controller.status.StatusManager
 import org.jooq.DSLContext
 import java.util.*
 
@@ -24,14 +25,19 @@ class RdsManager(
 
         CreationResult(
             result.let {
-                RdsInstanceResponse(it.id.id, it.name, it.provider.id, statusManager.latest(it.id.id))
+                RdsInstanceResponse(it.id.id, it.name, it.provider.id, StatusResponse(statusManager.latest(it.id.id)))
             }
         )
     }
 
     fun list() = rdsInstancesManager.list()
 
-    fun delete(id: UUID) = rdsInstancesManager.delete(id)
+    fun delete(id: UUID) = dsl.transactionResult { _ ->
+        rdsConfigurationManager.deleteByInstance(id)
+        rdsInstancesManager.delete(id)
+
+        true
+    }
 
     fun read(id: UUID) = rdsInstancesManager.read(id)
 }

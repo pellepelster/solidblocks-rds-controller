@@ -20,7 +20,7 @@ export class NavigationComponent implements OnInit {
   ngOnInit(): void {
 
     this.navigationService.currentProvider.subscribe((provider) => {
-      this.currentProvider = provider as ProviderResponse
+      this.currentProvider = provider as ProviderResponse | null
     })
 
     this.providersService.list().subscribe((providers) => {

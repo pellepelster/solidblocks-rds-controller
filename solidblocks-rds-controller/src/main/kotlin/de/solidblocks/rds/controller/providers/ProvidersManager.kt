@@ -8,18 +8,22 @@ import de.solidblocks.rds.base.Utils
 import de.solidblocks.rds.controller.RdsScheduler
 import de.solidblocks.rds.controller.api.CreationResult
 import de.solidblocks.rds.controller.api.MessagesResponse
+import de.solidblocks.rds.controller.api.StatusResponse
 import de.solidblocks.rds.controller.controllers.ControllersManager
+import de.solidblocks.rds.controller.log.LogManager
 import de.solidblocks.rds.controller.model.Constants.API_KEY
 import de.solidblocks.rds.controller.model.Constants.SSH_PRIVATE_KEY
 import de.solidblocks.rds.controller.model.Constants.SSH_PUBLIC_KEY
 import de.solidblocks.rds.controller.model.entities.ProviderEntity
 import de.solidblocks.rds.controller.model.entities.ProviderId
+import de.solidblocks.rds.controller.model.repositories.LogRepository
 import de.solidblocks.rds.controller.model.repositories.ProvidersRepository
 import de.solidblocks.rds.controller.model.repositories.RdsInstancesRepository
-import de.solidblocks.rds.controller.model.status.Status
-import de.solidblocks.rds.controller.model.status.StatusManager
+import de.solidblocks.rds.controller.model.status.HealthStatus
+import de.solidblocks.rds.controller.model.status.ProvisioningStatus.*
 import de.solidblocks.rds.controller.providers.api.ProviderCreateRequest
 import de.solidblocks.rds.controller.providers.api.ProviderResponse
+import de.solidblocks.rds.controller.status.StatusManager
 import de.solidblocks.rds.controller.utils.Constants.sshKeyName
 import de.solidblocks.rds.controller.utils.ErrorCodes
 import me.tomsdevsn.hetznercloud.HetznerCloudAPI
@@ -31,7 +35,8 @@ class ProvidersManager(
     private val rdsInstancesRepository: RdsInstancesRepository,
     private val controllersManager: ControllersManager,
     private val rdsScheduler: RdsScheduler,
-    private val statusManager: StatusManager
+    private val statusManager: StatusManager,
+    private val logRepository: LogRepository,
 ) {
 
     private val logger = KotlinLogging.logger {}
@@ -39,7 +44,16 @@ class ProvidersManager(
     private var applyTask = Tasks.oneTime(
         "providers-apply-task", ProviderEntity::class.java
     ).execute { inst: TaskInstance<ProviderEntity>, _: ExecutionContext ->
-        apply(inst.data)
+        with(inst.data) {
+            try {
+                statusManager.update(id, RUNNING)
+                apply(inst.data, LogManager(id.id, logRepository, logger))
+                statusManager.update(id, FINISHED)
+            } catch (e: Exception) {
+                statusManager.update(id, FAILED)
+                logger.error(e) { "failed to execute apply task" }
+            }
+        }
     }
 
     private var ensureTask =
@@ -55,10 +69,10 @@ class ProvidersManager(
 
                 if (api.hasSSHKey(sshKeyName(provider))) {
                     logger.info { "provider '${provider.name}' is healthy" }
-                    statusManager.update(provider.id.id, Status.HEALTHY)
+                    statusManager.update(provider.id.id, HealthStatus.HEALTHY)
                 } else {
                     logger.info { "provider '${provider.name}' is unhealthy" }
-                    statusManager.update(provider.id.id, Status.UNHEALTHY)
+                    statusManager.update(provider.id.id, HealthStatus.UNHEALTHY)
                 }
             }
         }
@@ -81,7 +95,7 @@ class ProvidersManager(
     }
 
     fun read(id: ProviderId) = repository.read(id.id)?.let {
-        ProviderResponse(it.id.id, it.name, it.controller.id, statusManager.latest(id.id))
+        ProviderResponse(it.id.id, it.name, it.controller.id, StatusResponse(statusManager.latest(id.id)))
     }
 
     fun delete(id: UUID): MessagesResponse {
@@ -98,7 +112,7 @@ class ProvidersManager(
     }
 
     fun list() = repository.list().map {
-        ProviderResponse(it.id.id, it.name, it.controller.id, statusManager.latest(it.id.id))
+        ProviderResponse(it.id.id, it.name, it.controller.id, StatusResponse(statusManager.latest(it.id.id)))
     }
 
     fun validate(request: ProviderCreateRequest): MessagesResponse {
@@ -132,7 +146,7 @@ class ProvidersManager(
 
         return CreationResult(
             entity.let {
-                ProviderResponse(it.id.id, it.name, it.controller.id, statusManager.latest(it.id.id))
+                ProviderResponse(it.id.id, it.name, it.controller.id, StatusResponse(statusManager.latest(it.id.id)))
             }
         )
     }
@@ -153,22 +167,27 @@ class ProvidersManager(
         return false
     }
 
-    private fun apply(provider: ProviderEntity): Boolean {
-        logger.info { "starting apply for provider '${provider.name}'" }
+    private fun apply(provider: ProviderEntity, logManager: LogManager): Boolean {
+        logManager.info { "starting provisioning for provider '${provider.name}'" }
 
         val api = createProviderApi(provider.id) ?: return false
 
         if (!api.hasSSHKey(sshKeyName(provider))) {
             if (!api.ensureSSHKey(sshKeyName(provider), provider.sshPublicKey)) {
-                logger.error {
+                logManager.error {
                     "creating ssh key failed for provider '${provider.name}'"
                 }
 
                 return false
             }
+
+            logManager.error {
+                "created ssh key for provider '${provider.name}'"
+            }
         }
 
-        logger.info { "apply finished for provider '${provider.name}'" }
+        logManager.info { "provisioning finished for provider '${provider.name}'" }
+
         return true
     }
 

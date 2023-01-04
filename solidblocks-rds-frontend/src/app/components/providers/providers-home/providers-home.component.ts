@@ -57,6 +57,7 @@ export class ProvidersHomeComponent extends BaseFormComponent implements OnInit 
   delete(id: string) {
     this.providersService.delete(id).subscribe((next) => {
         this.router.navigate(['providers'])
+        this.navigationService.selectProvider(null)
       },
       (error) => {
         this.toastsService.handleErrorResponse(error)

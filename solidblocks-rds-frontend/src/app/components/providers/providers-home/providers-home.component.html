@@ -3,42 +3,41 @@
   <div class="d-flex flex-row align-items-center justify-content-between component-toolbar">
     <h5>RDS Instances</h5>
     <div class="btn-group btn-group-sm align-self-end" role="group" aria-label="Provider Actions">
-      <a class="btn btn-outline-primary btn-sm" [routerLink]="['rds', 'create']">Create RDS Instance</a>
       <a class="btn btn-outline-danger btn-sm" (click)="delete(provider.id)">Delete Provider</a>
     </div>
   </div>
 
-  <div class="d-flex flex-wrap card-list mt-3" style="gap: 1em;">
+  <div class="d-flex flex-wrap card-list" style="gap: 1em;">
 
-    <table class="table">
-      <thead>
-      <tr>
-        <th scope="col">Name</th>
-        <th scope="col">Status</th>
-      </tr>
-      </thead>
-      <tbody>
+    <div class="card" style="width: 20rem;" *ngFor="let rdsInstance of rdsInstances">
+      <div class="card-body">
 
-      <tr *ngIf="rdsInstances?.length === 0">
-        <td class="card bg-white mt-3 mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+
+          <h5 class="card-title">
+            <a [routerLink]="[ 'rds', rdsInstance.id ]">
+              {{rdsInstance.name}}
+            </a>
+          </h5>
+
+          <app-status [status]="rdsInstance.status"></app-status>
+        </div>
+
+        <p class="card-text">
+          Some information about the instance.
+        </p>
+      </div>
+    </div>
+
+    <div class="card card-add" style="width: 18rem;">
+      <div class="card-body d-flex justify-content-center align-items-center">
+        <p class="card-text">
           <a [routerLink]="[ 'rds', 'create' ]">
-            Create a RDS Instance
+            + Add RDS Instance
           </a>
-        </td>
-      </tr>
-
-      <tr *ngFor="let rdsInstance of rdsInstances" class="card bg-white mt-3 mb-2">
-        <td>
-          <a [routerLink]="[ 'rds', rdsInstance.id ]">
-            {{rdsInstance.name}}
-          </a>
-        </td>
-        <td>
-          <span class="badge bg-{{ rdsInstance.status | providerStatusColor}} ml-2">{{rdsInstance.status}}</span>
-        </td>
-      </tr>
-
-      </tbody>
-    </table>
+        </p>
+      </div>
+    </div>
 
   </div>
+</div>

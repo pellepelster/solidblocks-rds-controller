@@ -13,8 +13,7 @@ import {ProviderResponse} from "../../services/types";
             <a [routerLink]="[provider.id]">Provider {{provider.name}}</a>
           </h5>
 
-          <span class="badge bg-{{ provider.status | providerStatusColor}} ml-2">{{provider.status}}</span>
-
+          <app-status [status]="provider.status"></app-status>
         </div>
 
         <p class="card-text">

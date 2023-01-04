@@ -14,7 +14,7 @@ import {ProvidersRoutingModule} from "./providers-routing-module";
 import {ProvidersComponent} from "./providers.component";
 import {ProvidersHomeComponent} from "./providers-home/providers-home.component";
 import {RdsInstancesModule} from "../rds-instances/rds-instances-module";
-import {ProviderStatusColorPipe} from "./providers-home/provider-status-color.pipe";
+import {UtilsModule} from "../../utils/utils-module";
 
 @NgModule({
   declarations: [
@@ -26,7 +26,6 @@ import {ProviderStatusColorPipe} from "./providers-home/provider-status-color.pi
     ProvidersWizardStep2Component,
     ProvidersListItemComponent,
     ProvidersComponent,
-    ProviderStatusColorPipe
   ],
   exports: [],
   imports: [
@@ -35,6 +34,7 @@ import {ProviderStatusColorPipe} from "./providers-home/provider-status-color.pi
     ReactiveFormsModule,
     ProvidersRoutingModule,
     RdsInstancesModule,
+    UtilsModule
   ]
 })
 export class ProvidersModule {

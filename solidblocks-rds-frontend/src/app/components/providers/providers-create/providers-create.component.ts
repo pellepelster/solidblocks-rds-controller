@@ -85,8 +85,8 @@ export class ProvidersWizardStep2Component extends BaseFormComponent implements 
 
   finish() {
     this.providersService.create(this.form.value.name as string, this.form.value.apiKey as string).subscribe(
-      (data) => {
-        this.router.navigate(['providers', data.provider.id])
+      (_) => {
+        this.router.navigate(['providers'])
       },
       (error) => {
         this.handleErrorResponse(error)

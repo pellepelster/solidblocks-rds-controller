@@ -7,9 +7,9 @@ import {ProviderResponse} from "../../services/types";
 })
 export class NavigationService {
 
-  public currentProvider = new Subject<ProviderResponse>();
+  public currentProvider = new Subject<ProviderResponse | null>();
 
-  selectProvider(provider: ProviderResponse) {
+  selectProvider(provider: ProviderResponse | null) {
     this.currentProvider.next(provider)
   }
 

@@ -7,11 +7,15 @@ export interface ConfigValueDefinition {
   type: string
 }
 
+export interface StatusResponse {
+  health: string
+}
+
 // provider
 export interface ProviderResponse {
   name: string
   id: string
-  status: string
+  status: StatusResponse
 }
 
 export interface ProvidersResponseWrapper {
@@ -36,7 +40,7 @@ export interface MessageResponse {
 export interface RdsInstanceResponse {
   name: string
   id: string
-  status: string
+  status: StatusResponse
 }
 
 export interface RdsInstancesResponseWrapper {

@@ -103,7 +103,7 @@ export class RdsInstancesWizardStep2Component extends BaseFormComponent implemen
   finish() {
     this.rdsInstancesService.create(this.form.value.name as string, this.providerId, this.form.value.username as string, this.form.value.password as string).subscribe(
       (data) => {
-        this.router.navigate(['providers', this.providerId, 'rds', data.rdsInstance.id])
+        this.router.navigate(['providers', this.providerId])
       },
       (error) => {
         this.handleErrorResponse(error)

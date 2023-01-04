@@ -3,12 +3,13 @@ package de.solidblocks.rds.controller
 import de.solidblocks.rds.base.Database
 import de.solidblocks.rds.controller.controllers.ControllersManager
 import de.solidblocks.rds.controller.model.repositories.ControllersRepository
+import de.solidblocks.rds.controller.model.repositories.LogRepository
 import de.solidblocks.rds.controller.model.repositories.ProvidersRepository
 import de.solidblocks.rds.controller.model.repositories.RdsInstancesRepository
-import de.solidblocks.rds.controller.model.status.StatusManager
 import de.solidblocks.rds.controller.model.status.StatusRepository
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import de.solidblocks.rds.controller.providers.api.ProviderCreateRequest
+import de.solidblocks.rds.controller.status.StatusManager
 import de.solidblocks.rds.test.TestDatabaseExtension
 import io.mockk.justRun
 import io.mockk.mockk
@@ -23,6 +24,7 @@ class ProvidersManagerTest {
     fun testCreate(database: Database) {
         val repository = ProvidersRepository(database.dsl)
         val rdsInstancesRepository = RdsInstancesRepository(database.dsl)
+        val logRepository = LogRepository(database.dsl)
 
         val controllersManager = ControllersManager(ControllersRepository(database.dsl))
 
@@ -35,7 +37,7 @@ class ProvidersManagerTest {
 
         val manager = ProvidersManager(
             repository, rdsInstancesRepository, controllersManager, rdsScheduler,
-            statusManager
+            statusManager, logRepository
         )
 
         val request = ProviderCreateRequest("name1", "apiKey1")

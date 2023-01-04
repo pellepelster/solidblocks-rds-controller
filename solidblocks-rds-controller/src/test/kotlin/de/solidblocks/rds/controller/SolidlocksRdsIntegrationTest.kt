@@ -5,16 +5,13 @@ import de.solidblocks.rds.controller.configuration.RdsConfigurationManager
 import de.solidblocks.rds.controller.controllers.ControllersManager
 import de.solidblocks.rds.controller.instances.RdsInstancesManager
 import de.solidblocks.rds.controller.instances.api.RdsInstanceCreateRequest
-import de.solidblocks.rds.controller.model.repositories.ControllersRepository
-import de.solidblocks.rds.controller.model.repositories.ProvidersRepository
-import de.solidblocks.rds.controller.model.repositories.RdsConfigurationRepository
-import de.solidblocks.rds.controller.model.repositories.RdsInstancesRepository
-import de.solidblocks.rds.controller.model.status.Status
-import de.solidblocks.rds.controller.model.status.StatusManager
+import de.solidblocks.rds.controller.model.repositories.*
+import de.solidblocks.rds.controller.model.status.HealthStatus
 import de.solidblocks.rds.controller.model.status.StatusRepository
 import de.solidblocks.rds.controller.providers.HetznerApi
 import de.solidblocks.rds.controller.providers.ProvidersManager
 import de.solidblocks.rds.controller.providers.api.ProviderCreateRequest
+import de.solidblocks.rds.controller.status.StatusManager
 import de.solidblocks.rds.test.TestDatabaseExtension
 import me.tomsdevsn.hetznercloud.HetznerCloudAPI
 import mu.KotlinLogging
@@ -71,6 +68,7 @@ class SolidlocksRdsIntegrationTest {
         val statusManager = StatusManager(StatusRepository(database.dsl))
 
         val rdsInstancesRepository = RdsInstancesRepository(database.dsl)
+        val logRepository = LogRepository(database.dsl)
 
         val controllersManager = ControllersManager(ControllersRepository(database.dsl))
 
@@ -79,7 +77,8 @@ class SolidlocksRdsIntegrationTest {
             rdsInstancesRepository,
             controllersManager,
             rdsScheduler,
-            statusManager
+            statusManager,
+            logRepository
         )
 
         val rdsInstancesManager = RdsInstancesManager(
@@ -106,7 +105,7 @@ class SolidlocksRdsIntegrationTest {
 
         await().atMost(ofMinutes(2)).until {
             providersManager.list().isNotEmpty() && providersManager.list().all {
-                statusManager.latest(it.id) == Status.HEALTHY
+                statusManager.latest(it.id) == HealthStatus.HEALTHY
             }
         }
 
@@ -121,7 +120,7 @@ class SolidlocksRdsIntegrationTest {
 
         await().atMost(ofMinutes(3)).until {
             rdsConfigurationManager.list().isNotEmpty() && rdsConfigurationManager.list().all {
-                statusManager.latest(it.id.id) == Status.HEALTHY
+                statusManager.latest(it.id.id) == HealthStatus.HEALTHY
             }
         }
     }
