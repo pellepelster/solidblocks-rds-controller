@@ -13,11 +13,11 @@ dependencies {
     implementation(project(":solidblocks-rds-cloud-init"))
     implementation(project(":solidblocks-rds-postgresql-agent"))
 
-    api("net.javacrumbs.shedlock:shedlock-provider-jdbc:4.32.0")
-    api("com.github.kagkarlsson:db-scheduler:10.5")
+    api("net.javacrumbs.shedlock:shedlock-provider-jdbc:5.0.1")
+    api("com.github.kagkarlsson:db-scheduler:11.6")
 
-    implementation("io.github.resilience4j:resilience4j-kotlin:1.7.1")
-    implementation("io.github.resilience4j:resilience4j-retry:1.7.1")
+    implementation("io.github.resilience4j:resilience4j-kotlin:2.0.2")
+    implementation("io.github.resilience4j:resilience4j-retry:2.0.2")
 
     implementation("me.tomsdevsn:hetznercloud-api:3.0.1")
 

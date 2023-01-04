@@ -1,7 +1,7 @@
 package de.solidblocks.rds.controller.utils
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.github.kagkarlsson.scheduler.Serializer
+import com.github.kagkarlsson.scheduler.serializer.Serializer
 
 class JacksonSerializer : Serializer {
 

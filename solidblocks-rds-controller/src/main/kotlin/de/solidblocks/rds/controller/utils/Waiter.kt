@@ -3,7 +3,6 @@ package de.solidblocks.rds.controller.utils
 import io.github.resilience4j.retry.Retry
 import io.github.resilience4j.retry.RetryConfig
 import io.github.resilience4j.retry.RetryRegistry
-import io.vavr.control.Try
 import java.time.Duration
 import java.util.*
 
@@ -21,7 +20,7 @@ class Waiter(maxAttempts: Int, delay: Duration) {
         val retry = registry.retry(UUID.randomUUID().toString())
         val supplier = Retry.decorateSupplier(retry, callable)
 
-        return Try.ofSupplier(supplier).get()
+        return supplier.get()
     }
 
     companion object {
